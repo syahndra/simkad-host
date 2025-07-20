@@ -280,7 +280,7 @@
 
         function renderDokumenLink(a) {
             if (a.final_dokumen && a.final_dokumen.filePath) {
-                return `<a href="/storage/${a.final_dokumen.filePath}" target="_blank" class="badge text-primary" title="Lihat Dokumen">Dokumen</a>`;
+                return `<a href="${a.final_dokumen.filePath}" target="_blank" class="badge text-primary" title="Lihat Dokumen">Dokumen</a>`;
             }
             return '';
         }
@@ -294,7 +294,7 @@
                 `<button><a href="/ajuanCapil/${a.idCapil}" class="text-success" title="Detail"><i class="lni lni-eye"></i></a></button>`
             if (a.final_dokumen && a.final_dokumen.filePath) {
                 html +=
-                    `<button><a href="/storage/${a.final_dokumen.filePath}" target="_blank" class="text-primary" title="Lihat Final Dokumen"><i class="lni lni-archive"></i></a></button>`;
+                    `<button><a href="${a.final_dokumen.filePath}" target="_blank" class="text-primary" title="Lihat Final Dokumen"><i class="lni lni-archive"></i></a></button>`;
             }
 
             if (a.linkBerkas && typeof a.linkBerkas === 'string' && a.linkBerkas.trim() !== '') {

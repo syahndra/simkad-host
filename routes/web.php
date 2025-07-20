@@ -15,6 +15,8 @@ use App\Http\Controllers\ResponController;
 use App\Http\Controllers\FinalDokumenController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\DashboardController;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\File;
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -82,4 +84,14 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/finalDok/{id}', [FinalDokumenController::class, 'update'])->name('finalDokumen.update');
         Route::get('/cetak-token/{jenis}/{id}', [TokenController::class, 'cetakToken'])->name('ajuan.cetak');
     });
+});
+
+Route::get('/dokumen_final/{filename}', function ($filename) {
+    $path = base_path('dokumen_final/' . $filename);
+
+    if (!File::exists($path)) {
+        abort(404);
+    }
+
+    return Response::file($path);
 });
