@@ -73,8 +73,8 @@ class AjuanDafdukController extends Controller
         $request->validate([
             'idOpdes' => 'required|exists:operatordesa,idOpdes',
             'idLayanan' => 'required|exists:layanan,idLayanan',
-            'noKK' => 'required',
-            'nik' => 'required',
+            'noKK' => 'required|digits:16',
+            'nik'  => 'required|digits:16',
             'nama' => 'required|string|max:255',
             'keterangan' => 'nullable|string',
             'statAjuan' => 'required|in:dalam antrian,ditolak,sudah diproses,revisi',
@@ -88,7 +88,7 @@ class AjuanDafdukController extends Controller
         $ajuan = AjuanDafduk::with(['layanan', 'operatorDesa.desa.kecamatan'])
             ->where('idDafduk', $dafduk->idDafduk)
             ->first();
-            
+
         // Untuk Kirim email
         $data = [
             'nama' => $ajuan->nama,
@@ -118,13 +118,14 @@ class AjuanDafdukController extends Controller
     public function update(Request $request, $id)
     {
         $ajuan = AjuanDafduk::findOrFail($id);
-
+        
         $request->validate([
             'idLayanan' => 'required|exists:layanan,idLayanan',
-            'noKK' => 'required',
-            'nik' => 'required',
+            'noKK' => 'required|digits:16',
+            'nik'  => 'required|digits:16',
             'nama' => 'required|string|max:255',
             'keterangan' => 'nullable|string',
+            'statAjuan' => 'required|in:ditolak,sudah diproses,revisi',
             'linkBerkas' => 'nullable|url'
         ]);
 
@@ -192,7 +193,7 @@ class AjuanDafdukController extends Controller
     {
         $respon = Respon::where('idAjuan', $id)->first();
         $finalDokumen = FinalDokumen::where('idAjuan', $id)->first();
-        $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan','respon','finalDOkumen')->findOrFail($id);
+        $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan', 'respon', 'finalDOkumen')->findOrFail($id);
         return view('ajuanDafduk.show', compact('ajuan', 'respon', 'finalDokumen'));
     }
 }

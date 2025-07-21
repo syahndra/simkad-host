@@ -52,9 +52,9 @@ class AjuanCapilController extends Controller
         $request->validate([
             'idOpdes' => 'required|exists:operatordesa,idOpdes',
             'idLayanan' => 'required',
-            'noAkta' => 'nullable|string|max:50',
-            'noKK' => 'required|string|max:50',
-            'nik' => 'required|string|max:50',
+            'noAkta' => 'required|string|size:21|regex:/^[0-9]{4}-[A-Z]{2}-[0-9]{8}-[0-9]{4}$/',
+            'noKK' => 'required|digits:16',
+            'nik'  => 'required|digits:16',
             'nama' => 'required|string|max:100',
             'keterangan' => 'nullable|string|max:255',
             'linkBerkas' => 'nullable|url'
@@ -99,11 +99,11 @@ class AjuanCapilController extends Controller
         $ajuan = AjuanCapil::findOrFail($id);
         $request->validate([
             'idLayanan' => 'required|exists:layanan,idLayanan',
-            'noKK' => 'required',
-            'nik' => 'required',
-            'nama' => 'required|string|max:255',
-            'keterangan' => 'nullable|string',
-            'noAkta' => 'nullable|string|max:50',
+            'noAkta' => 'required|string|size:21|regex:/^[0-9]{4}-[A-Z]{2}-[0-9]{8}-[0-9]{4}$/',
+            'noKK' => 'required|digits:16',
+            'nik'  => 'required|digits:16',
+            'nama' => 'required|string|max:100',
+            'keterangan' => 'nullable|string|max:255',
             'linkBerkas' => 'nullable|url'
         ]);
 
