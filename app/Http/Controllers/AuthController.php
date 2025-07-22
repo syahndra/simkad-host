@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\ResetPassword as Reset;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordOtpMail;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -91,7 +92,7 @@ class AuthController extends Controller
         }
 
         $otp = rand(100000, 999999);
-        $expiredAt = now()->addMinutes(10);
+        $expiredAt = Carbon::now('Asia/Jakarta')->addMinutes(2);
 
         // Cek apakah sudah ada data reset sebelumnya
         $reset = Reset::where('email', $request->email)->first();
@@ -137,7 +138,7 @@ class AuthController extends Controller
         // Cek apakah OTP valid
         $reset = Reset::where('email', $request->email)
             ->where('otp_code', $request->otp_code)
-            ->where('otp_expires_at', '>', now())
+            ->where('otp_expires_at', '>', Carbon::now('Asia/Jakarta'))
             ->first();
 
         if (!$reset) {
