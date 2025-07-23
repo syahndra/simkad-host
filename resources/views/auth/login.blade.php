@@ -87,10 +87,9 @@
                                         <div class="col-12">
                                             <div class="input-style-1">
                                                 <label>Password</label>
-                                                <input type="password" name="password" id="password"
-                                                placeholder="Password" />
-                                            <span class="toggle-password" data-target="password"
-                                                style="cursor:pointer; position:absolute; right:10px; top:35px;">👁</span>
+                                                <input type="password" name="password" id="login_password" placeholder="Password" />
+                                                <span class="toggle-password" data-target="login_password"
+                                                    style="cursor:pointer; position:absolute; right:10px; top:35px;">👁</span>
                                             </div>
                                         </div>
                                         <!-- end col -->
@@ -280,4 +279,3 @@
 </body>
 
 </html>
-
