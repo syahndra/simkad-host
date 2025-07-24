@@ -122,13 +122,19 @@
                                             <input type="email" name="email" placeholder="Email" required />
                                         </div>
 
-                                        <div class="input-style-1 d-flex">
-                                            <div style="flex: 1; margin-right: 5px;">
-                                                <label>Kode Verifikasi</label>
-                                                <input type="text" name="otp_code" placeholder="Kode OTP" />
+                                        <div class="input-style-1">
+                                            <label for="otp_code">Kode Verifikasi</label>
+                                            <div class="d-flex align-items-start" style="gap: 10px;">
+                                                <input type="text" name="otp_code" id="otp_code" placeholder="Kode OTP"
+                                                    maxlength="6" pattern="\d{6}" inputmode="numeric"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,6);"
+                                                    style="flex: 1;" />
+
+                                                <button type="button" id="send-code-btn"
+                                                    class="main-btn primary-btn btn-hover"
+                                                    style="white-space: nowrap;">Kirim Kode</button>
                                             </div>
-                                            <button type="button" id="send-code-btn"
-                                                class="main-btn primary-btn btn-hover mt-30">Kirim Kode</button>
+                                            <small id="otp-status" class="text-sm text-danger d-block mt-1"></small>
                                         </div>
 
                                         <div class="input-style-1 position-relative">
@@ -274,6 +280,63 @@
             document.querySelector('form[action="/login"]').style.display = 'block'; // Tampilkan form login
             document.getElementById('login-text').style.display = 'block'; // Tampilkan teks Form Login & deskripsi
             document.getElementById('forgot-password-form').style.display = 'none'; // Sembunyikan form reset
+        });
+    </script>
+    <script>
+        document.getElementById('otp_code').addEventListener('input', function() {
+            const email = document.querySelector('#forgot-password-form input[name="email"]').value;
+            const otp = this.value.trim();
+
+            const statusElement = document.getElementById('otp-status');
+
+            if (otp.length === 6) {
+                fetch('/verify-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            otp_code: otp
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            statusElement.textContent = 'Kode OTP valid.';
+                            statusElement.classList.remove('text-danger');
+                            statusElement.classList.add('text-success');
+
+                            // Enable password input
+                            document.getElementById('password').disabled = false;
+                            document.getElementById('password_confirmation').disabled = false;
+                        } else {
+                            statusElement.textContent = 'Kode OTP salah atau kadaluarsa.';
+                            statusElement.classList.remove('text-success');
+                            statusElement.classList.add('text-danger');
+
+                            document.getElementById('password').disabled = true;
+                            document.getElementById('password_confirmation').disabled = true;
+                        }
+                    })
+                    .catch(() => {
+                        statusElement.textContent = 'Gagal memverifikasi kode OTP.';
+                        statusElement.classList.remove('text-success');
+                        statusElement.classList.add('text-danger');
+                    });
+            } else if (otp.length > 0 && otp.length < 6) {
+                statusElement.textContent = 'Kode OTP harus terdiri dari 6 angka.';
+                statusElement.classList.remove('text-success');
+                statusElement.classList.add('text-danger');
+
+                document.getElementById('password').disabled = true;
+                document.getElementById('password_confirmation').disabled = true;
+            } else {
+                statusElement.textContent = '';
+                document.getElementById('password').disabled = true;
+                document.getElementById('password_confirmation').disabled = true;
+            }
         });
     </script>
 </body>

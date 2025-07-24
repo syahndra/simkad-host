@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\ResetPassword as Reset;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordOtpMail;
+use App\Mail\PasswordResetSuccessMail;
 use Carbon\Carbon;
 
 class AuthController extends Controller
@@ -92,7 +93,7 @@ class AuthController extends Controller
         }
 
         $otp = rand(100000, 999999);
-        $expiredAt = Carbon::now('Asia/Jakarta')->addMinutes(2);
+        $expiredAt = Carbon::now('Asia/Jakarta')->addMinutes(30);
 
         // Cek apakah sudah ada data reset sebelumnya
         $reset = Reset::where('email', $request->email)->first();
@@ -135,7 +136,7 @@ class AuthController extends Controller
             'password' => 'required|confirmed|min:6',
         ]);
 
-        // Cek apakah OTP valid
+        
         $reset = Reset::where('email', $request->email)
             ->where('otp_code', $request->otp_code)
             ->where('otp_expires_at', '>', Carbon::now('Asia/Jakarta'))
@@ -148,17 +149,48 @@ class AuthController extends Controller
             ]);
         }
 
-        // Ambil user dan ubah passwordnya
+        // Simpan password baru yang masih dalam bentuk plain text
+        $plainPassword = $request->password;
+
+        // Update password
         $user = User::where('email', $request->email)->first();
-        $user->password = Hash::make($request->password);
+        $user->password = Hash::make($plainPassword);
         $user->save();
 
-        // Hapus kode OTP setelah digunakan
+        // Hapus kode OTP
         $reset->delete();
+
+        // Kirim email berisi password baru
+        Mail::to($request->email)->send(new PasswordResetSuccessMail($request->email, $plainPassword));
 
         return response()->json([
             'status' => true,
-            'message' => 'Password berhasil direset, silakan login'
+            'message' => 'Password berhasil direset, silakan login.'
         ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp_code' => 'required'
+        ]);
+
+        $reset = Reset::where('email', $request->email)
+            ->where('otp_code', $request->otp_code)
+            ->where('otp_expires_at', '>', Carbon::now('Asia/Jakarta'))
+            ->first();
+
+        if ($reset) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Kode OTP valid'
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Kode OTP salah atau kadaluarsa'
+            ]);
+        }
     }
 }

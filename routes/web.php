@@ -26,7 +26,7 @@ Route::get('/cek-pengajuan/{jenis}/{token}', [TokenController::class, 'cek'])->n
 // Lupa Password
 Route::post('/send-reset-code', [AuthController::class, 'sendResetCode']);
 Route::post('/submit-reset-password', [AuthController::class, 'submitResetPassword']);
-
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 
 Route::middleware(['auth'])->group(function () {
 
