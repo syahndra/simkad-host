@@ -57,6 +57,7 @@ class AjuanDafdukController extends Controller
                 ->get();
         } else {
             // Role lain, ambil semua
+            $listKecamatan = Kecamatan::whereIn('idKec', Desa::select('idKec'))->get();
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')->orderBy('created_at', 'desc')->get();
         }
 
