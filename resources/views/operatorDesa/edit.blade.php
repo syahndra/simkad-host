@@ -67,19 +67,6 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label>Pilih Kecamatan</label>
-                                    <select id="kecamatanSelect" class="form-control" required>
-                                        <option disabled>-- Pilih Kecamatan --</option>
-                                        @foreach ($kecamatan as $kec)
-                                            <option value="{{ $kec->idKec }}"
-                                                {{ $op->desa->idKec == $kec->idKec ? 'selected' : '' }}>
-                                                {{ $kec->namaKec }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
                                     <label>Pilih Desa</label>
                                     <select name="idDesa" id="desaSelect" class="form-control" required>
                                         @foreach ($daftarDesa as $des)
@@ -102,24 +89,4 @@
         </div>
         <!-- end container -->
     </section>
-@endsection
-
-@section('scripts')
-    <script>
-        document.getElementById('kecamatanSelect').addEventListener('change', function() {
-            const kecId = this.value;
-            const desaSelect = document.getElementById('desaSelect');
-            desaSelect.innerHTML = '<option>Memuat...</option>';
-
-            fetch(`/getDesa-by-kecamatan/${kecId}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data); // Periksa data yang diterima
-                    desaSelect.innerHTML = '<option disabled selected>-- Pilih Desa --</option>';
-                    data.forEach(d => {
-                        desaSelect.innerHTML += `<option value="${d.idDesa}">${d.namaDesa}</option>`;
-                    });
-                });
-        });
-    </script>
 @endsection

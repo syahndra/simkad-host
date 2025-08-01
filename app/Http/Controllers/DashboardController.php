@@ -36,7 +36,7 @@ class DashboardController extends Controller
         } elseif ($role === 'opDinCapil') {
             $dafduk->whereRaw('0 = 1'); // kosongkan
 
-        } // admin dan superadmin: tanpa filter
+        } // admin : tanpa filter
 
         // Ambil jumlah per status
         $capilStats = $capil->select('statAjuan', DB::raw('COUNT(*) as jumlah'))
@@ -80,7 +80,7 @@ class DashboardController extends Controller
             $queryDafduk->whereHas('layanan', fn($q) => $q->where('aksesVer', 'dinasDafduk'));
         } elseif ($role === 'opDinCapil') {
             $queryDafduk->whereRaw('0 = 1'); // kosongkan
-        } // admin dan superadmin: tanpa filter
+        } // admin : tanpa filter
 
         // Siapkan hasil akhir
         $labels = [];

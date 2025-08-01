@@ -5,7 +5,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\DesaController;
 use App\Http\Controllers\LayananController;
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OperatorDinasController;
 use App\Http\Controllers\OperatorKecController;
 use App\Http\Controllers\OperatorDesaController;
@@ -41,26 +40,26 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ubahProfil', [AuthController::class, 'ubahProfil'])->name('ubahProfil');
     Route::put('/ubahProfil', [AuthController::class, 'updateProfil'])->name('profil.update');
 
-    Route::middleware(['checkRole:superadmin'])->group(function () {
+    Route::middleware(['checkRole:admin'])->group(function () {
         Route::resource('kecamatan', KecamatanController::class);
         Route::resource('desa', DesaController::class);
         Route::resource('layanan', LayananController::class);
-        Route::resource('admin', AdminController::class);
     });
 
     Route::middleware(['checkRole:admin'])->group(function () {
         Route::resource('operatorDinas', OperatorDinasController::class);
         Route::resource('operatorKec', OperatorKecController::class);
+    });
+    Route::middleware(['checkRole:operatorKecamatan'])->group(function () {
         Route::resource('operatorDesa', OperatorDesaController::class);
         Route::get('/getDesa-by-kecamatan/{idKec}', [OperatorDesaController::class, 'getDesaByKecamatan'])->name('getDesaByKecamatan');
     });
-
-    Route::middleware(['checkRole:operatorDesa,operatorKecamatan,opDinDafduk,superadmin,admin'])->group(function () {
+    Route::middleware(['checkRole:operatorDesa,operatorKecamatan,opDinDafduk,admin'])->group(function () {
         Route::resource('ajuanDafduk', AjuanDafdukController::class);
         Route::get('/ajuanDafduk/{id}', [AjuanDafdukController::class, 'show'])->name('ajuanDafduk.show');
     });
 
-    Route::middleware(['checkRole:operatorDesa,opDinCapil,superadmin,admin'])->group(function () {
+    Route::middleware(['checkRole:operatorDesa,opDinCapil,admin'])->group(function () {
         Route::resource('ajuanCapil', AjuanCapilController::class);
         Route::get('/ajuanCapil/{id}', [AjuanCapilController::class, 'show'])->name('ajuanCapil.show');
     });

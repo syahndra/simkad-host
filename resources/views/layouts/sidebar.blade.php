@@ -17,8 +17,8 @@
                 </a>
             </li>
 
-            {{-- Untuk superadmin saja --}}
-            @if ($role == 'superadmin')
+            {{-- Untuk admin saja --}}
+            @if ($role == 'admin')
             <li class="nav-item @if ($menu == 'layanan') active @endif">
                 <a href="{{ route('layanan.index') }}">
                     <i class="lni lni-laptop-phone icon"></i>
@@ -46,8 +46,8 @@
             </li>
             @endif
 
-            {{-- Untuk superadmin dan admin --}}
-            @if (in_array($role, ['superadmin', 'admin']))
+            {{-- Untuk admin --}}
+            @if (in_array($role, ['admin','operatorKecamatan']))
             <li class="nav-item nav-item-has-children">
                 <a href="#0" class="@if ($menu != 'user') collapsed @endif" data-bs-toggle="collapse"
                     data-bs-target="#ddmenu_user" aria-controls="ddmenu_user" aria-expanded="false"
@@ -56,12 +56,6 @@
                     <span class="text">Manajemen User</span>
                 </a>
                 <ul id="ddmenu_user" class="@if ($menu != 'user') collapse @endif dropdown-nav">
-                    @if ($role == 'superadmin')
-                    <li>
-                        <a href="{{ route('admin.index') }}"
-                            class="@if (Str::contains($title, 'Admin')) active @endif">Admin</a>
-                    </li>
-                    @endif
                     @if ($role == 'admin')
                     <li>
                         <a href="{{ route('operatorDinas.index') }}"
@@ -71,13 +65,17 @@
                         <a href="{{ route('operatorKec.index') }}"
                             class="@if (Str::contains($title, 'Operator Kecamatan')) active @endif">Operator Kecamatan</a>
                     </li>
+                    @endif
+                    @if ($role == 'operatorKecamatan')
                     <li>
                         <a href="{{ route('operatorDesa.index') }}"
                             class="@if (Str::contains($title, 'Operator Desa')) active @endif">Operator Desa</a>
                     </li>
                     @endif
+
                 </ul>
             </li>
+            @if ($role == 'admin')
             <li class="nav-item nav-item-has-children">
                 <a href="#0" class="@if ($menu != 'ajuanDafduk' && $menu != 'ajuanCapil') collapsed @endif" data-bs-toggle="collapse"
                     data-bs-target="#ddmenu_report" aria-controls="ddmenu_report" aria-expanded="false"
@@ -96,6 +94,7 @@
                     </li>
                 </ul>
             </li>
+            @endif
             @endif
 
             {{-- Untuk operatorDesa, operatorKecamatan, opDinDafduk --}}

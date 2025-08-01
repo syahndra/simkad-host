@@ -35,8 +35,6 @@ class AppServiceProvider extends ServiceProvider
                 $role = 'Operator Capil';
             } elseif ($user && $user->roleUser === 'admin') {
                 $role = 'Admin';
-            } elseif ($user && $user->roleUser === 'superadmin') {
-                $role = 'Superadmin';
             } else {
                 $role = '';
             }

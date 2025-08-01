@@ -8,19 +8,27 @@ use App\Models\Desa;
 use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use App\Models\OperatorKec;
 
 class OperatorDesaController extends Controller
 {
     public function index()
     {
-        $data = OperatorDesa::with(['user', 'desa.kecamatan'])->get();
+        $opkec = OperatorKec::where('idUser', Auth::user()->idUser)->first();
+        $data = OperatorDesa::with(['user', 'desa.kecamatan'])
+            ->whereHas('desa', function ($query) use ($opkec) {
+                $query->where('idKec', $opkec->idKec);
+            })
+            ->get();
         return view('operatorDesa.index', compact('data'));
     }
 
     public function create()
     {
-        $kecamatan = Kecamatan::whereIn('idKec', Desa::select('idKec'))->get();
-        return view('operatorDesa.create', compact('kecamatan'));
+        $opkec = OperatorKec::where('idUser', Auth::user()->idUser)->first();
+        $desa = Desa::where('idKec', $opkec->idKec)->get();
+        return view('operatorDesa.create', compact('desa'));
     }
 
     public function store(Request $request)
@@ -49,9 +57,10 @@ class OperatorDesaController extends Controller
 
     public function edit($id)
     {
+        $opkec = OperatorKec::where('idUser', Auth::user()->idUser)->first();
+        $desa = Desa::where('idKec', $opkec->idKec)->get();
         $op = OperatorDesa::with('user', 'desa')->findOrFail($id);
-        $idKec = $op->desa->idKec;
-        $daftarDesa = Desa::where('idKec', $idKec)->get();
+        $daftarDesa = Desa::where('idKec', $opkec->idKec)->get();
         $kecamatan = Kecamatan::whereIn('idKec', Desa::select('idKec'))->get();
         return view('operatorDesa.edit', compact('op', 'daftarDesa', 'kecamatan'));
     }

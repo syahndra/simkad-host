@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->enum('roleUser', ['superadmin', 'operatorDesa', 'operatorKecamatan', 'verifikatorDafduk', 'verifikatorCapil', 'admin']); // Menambahkan kolom roleUser
+            $table->enum('roleUser', ['operatorDesa', 'operatorKecamatan', 'verifikatorDafduk', 'verifikatorCapil', 'admin']); // Menambahkan kolom roleUser
             $table->enum('status', ['aktif', 'nonaktif'])->default('aktif'); // Menambahkan kolom status
             $table->timestamps();
         });
