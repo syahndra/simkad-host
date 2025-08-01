@@ -95,3 +95,7 @@ Route::get('/dokumen_final/{filename}', function ($filename) {
 
     return Response::file($path);
 });
+
+Route::get('/get-desa-by-kecamatan/{idKec}', function ($idKec) {
+    return \App\Models\Desa::where('idKec', $idKec)->get();
+});

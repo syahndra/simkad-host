@@ -90,6 +90,21 @@
                             </div>
 
                             <div class="mb-3">
+                                <label>RT / RW</label>
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input type="text" name="rt" class="form-control"
+                                            maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                    </div>
+                                    /
+                                    <div class="col-md-2">
+                                        <input type="text" name="rw" class="form-control"
+                                            maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
                                 <label>Keterangan</label>
                                 <textarea name="keterangan" class="form-control">{{ old('keterangan') }}</textarea>
                             </div>

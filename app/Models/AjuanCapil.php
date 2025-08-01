@@ -23,7 +23,10 @@ class AjuanCapil extends Model
         'keterangan',
         'statAjuan',
         'linkBerkas',
-        'token'
+        'token',
+        'rt',
+        'rw',
+        'email'
     ];
 
     public function layanan()

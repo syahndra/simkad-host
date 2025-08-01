@@ -13,12 +13,15 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PengajuanMasukMail;
+use App\Models\Kecamatan;
+use App\Models\Desa;
 
 class AjuanCapilController extends Controller
 {
     public function index()
     {
         $listLayanan = Layanan::where('jenis', 'capil')->get();
+        $listKecamatan = Kecamatan::whereIn('idKec', Desa::select('idKec'))->get();
         if (Auth::user()->roleUser === 'operatorDesa') {
             $opdes = OperatorDesa::where('idUser', Auth::user()->idUser)->first();
 
@@ -32,7 +35,7 @@ class AjuanCapilController extends Controller
             $ajuan = AjuanCapil::with('layanan', 'operatorDesa.desa.kecamatan', 'respon')->orderBy('created_at', 'desc')->get();
         }
 
-        return view('ajuanCapil.index', compact('ajuan', 'listLayanan'));
+        return view('ajuanCapil.index', compact('ajuan', 'listLayanan', 'listKecamatan'));
     }
 
     public function create()
@@ -57,7 +60,10 @@ class AjuanCapilController extends Controller
             'nik'  => 'required|digits:16',
             'nama' => 'required|string|max:100',
             'keterangan' => 'nullable|string|max:255',
-            'linkBerkas' => 'nullable|url'
+            'linkBerkas' => 'nullable|url',
+            'rt' => 'required|digits_between:1,3',
+            'rw' => 'required|digits_between:1,3',
+            'email' => 'required|email',
         ]);
 
         $data = $request->all();
@@ -149,6 +155,25 @@ class AjuanCapilController extends Controller
             $query->where('statAjuan', $request->status);
         }
 
+        if ($request->kecamatan) {
+            $query->whereHas('operatorDesa.desa', function ($q) use ($request) {
+                $q->where('idKec', $request->kecamatan);
+            });
+        }
+
+        if ($request->desa) {
+            $query->whereHas('operatorDesa', function ($q) use ($request) {
+                $q->where('idDesa', $request->desa);
+            });
+        }
+
+        if ($request->rt) {
+            $query->where('rt', $request->rt);
+        }
+        if ($request->rw) {
+            $query->where('rw', $request->rw);
+        }
+
         $result = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
@@ -158,8 +183,13 @@ class AjuanCapilController extends Controller
 
     public function show($id)
     {
-        $respon = Respon::where('idAjuan', $id)->first();
-        $finalDokumen = FinalDokumen::where('idAjuan', $id)->first();
+        $respon = Respon::where('idAjuan', $id)
+            ->where('jenis', 'capil')
+            ->first();
+
+        $finalDokumen = FinalDokumen::where('idAjuan', $id)
+            ->where('jenis', 'capil')
+            ->first();
         $ajuan = AjuanCapil::with('operatorDesa.desa.kecamatan', 'layanan', 'respon', 'finalDOkumen')->findOrFail($id);
         return view('ajuanCapil.show', compact('ajuan', 'respon', 'finalDokumen'));
     }

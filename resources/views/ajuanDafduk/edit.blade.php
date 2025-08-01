@@ -85,6 +85,21 @@
                             </div>
 
                             <div class="mb-3">
+                                <label>RT / RW</label>
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input type="text" name="rt" class="form-control"
+                                            maxlength="3" value="{{ old('rt', $ajuan->rt) }}" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                    </div>
+                                    /
+                                    <div class="col-md-2">
+                                        <input type="text" name="rw" class="form-control"
+                                            maxlength="3" value="{{ old('rw', $ajuan->rw) }}" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
                                 <label>Keterangan</label>
                                 <textarea name="keterangan" class="form-control">{{ old('keterangan', $ajuan->keterangan) }}</textarea>
                             </div>
@@ -94,6 +109,10 @@
                                 <input type="url" name="linkBerkas" class="form-control"
                                     value="{{ old('linkBerkas', $ajuan->linkBerkas) }}">
                                 <small class="text-muted">Masukkan link dari GDrive yang dapat diakses</small>
+                            </div>
+                            <div class="mb-3">
+                                <label>Email</label>
+                                <input type="email" name="email" class="form-control" required value="{{ old('email', $ajuan->email) }}">
                             </div>
                             <a href="{{ route('ajuanDafduk.index') }}" class="btn btn-secondary">Kembali</a>
                             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

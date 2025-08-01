@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PengajuanMasukMail;
+use App\Models\Kecamatan;
+use App\Models\Desa;
 
 class AjuanDafdukController extends Controller
 {
@@ -21,6 +23,7 @@ class AjuanDafdukController extends Controller
     {
         $user = Auth::user();
         $listLayanan = Layanan::where('jenis', 'dafduk')->get();
+        $listKecamatan = null;
 
         if ($user->roleUser === 'operatorDesa') {
             $opdes = OperatorDesa::where('idUser', $user->idUser)->first();
@@ -33,6 +36,7 @@ class AjuanDafdukController extends Controller
         } elseif ($user->roleUser === 'operatorKecamatan') {
             $listLayanan = Layanan::where('aksesVer', 'kecamatan')->get();
             $opkec = OperatorKec::where('idUser', $user->idUser)->first();
+            $listKecamatan = Kecamatan::where('idKec', $opkec->idKec)->get();
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')
                 ->whereHas('operatorDesa.desa', function ($query) use ($opkec) {
                     $query->where('idKec', $opkec->idKec);
@@ -44,6 +48,7 @@ class AjuanDafdukController extends Controller
                 ->get();
         } elseif ($user->roleUser === 'opDinDafduk') {
             $listLayanan = Layanan::where('aksesVer', 'dinasDafduk')->get();
+            $listKecamatan = Kecamatan::whereIn('idKec', Desa::select('idKec'))->get();
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')
                 ->whereHas('layanan', function ($query) {
                     $query->where('aksesVer', 'dinasDafduk');
@@ -55,7 +60,7 @@ class AjuanDafdukController extends Controller
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')->orderBy('created_at', 'desc')->get();
         }
 
-        return view('ajuanDafduk.index', compact('ajuan', 'listLayanan'));
+        return view('ajuanDafduk.index', compact('ajuan', 'listLayanan', 'listKecamatan'));
     }
 
     public function create()
@@ -78,7 +83,10 @@ class AjuanDafdukController extends Controller
             'nama' => 'required|string|max:255',
             'keterangan' => 'nullable|string',
             'statAjuan' => 'required|in:dalam antrian,ditolak,sudah diproses,revisi',
-            'linkBerkas' => 'nullable|url'
+            'linkBerkas' => 'nullable|url',
+            'rt' => 'required|digits_between:1,3',
+            'rw' => 'required|digits_between:1,3',
+            'email' => 'required|email',
         ]);
 
         $data = $request->all();
@@ -118,14 +126,13 @@ class AjuanDafdukController extends Controller
     public function update(Request $request, $id)
     {
         $ajuan = AjuanDafduk::findOrFail($id);
-        
+
         $request->validate([
             'idLayanan' => 'required|exists:layanan,idLayanan',
             'noKK' => 'required|digits:16',
             'nik'  => 'required|digits:16',
             'nama' => 'required|string|max:255',
             'keterangan' => 'nullable|string',
-            'statAjuan' => 'required|in:ditolak,sudah diproses,revisi',
             'linkBerkas' => 'nullable|url'
         ]);
 
@@ -182,6 +189,25 @@ class AjuanDafdukController extends Controller
             $query->where('statAjuan', $request->status);
         }
 
+        if ($request->kecamatan) {
+            $query->whereHas('operatorDesa.desa', function ($q) use ($request) {
+                $q->where('idKec', $request->kecamatan);
+            });
+        }
+
+        if ($request->desa) {
+            $query->whereHas('operatorDesa', function ($q) use ($request) {
+                $q->where('idDesa', $request->desa);
+            });
+        }
+
+        if ($request->rt) {
+            $query->where('rt', $request->rt);
+        }
+        if ($request->rw) {
+            $query->where('rw', $request->rw);
+        }
+
         $result = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
@@ -191,8 +217,13 @@ class AjuanDafdukController extends Controller
 
     public function show($id)
     {
-        $respon = Respon::where('idAjuan', $id)->first();
-        $finalDokumen = FinalDokumen::where('idAjuan', $id)->first();
+        $respon = Respon::where('idAjuan', $id)
+            ->where('jenis', 'dafduk')
+            ->first();
+
+        $finalDokumen = FinalDokumen::where('idAjuan', $id)
+            ->where('jenis', 'dafduk')
+            ->first();
         $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan', 'respon', 'finalDOkumen')->findOrFail($id);
         return view('ajuanDafduk.show', compact('ajuan', 'respon', 'finalDokumen'));
     }
