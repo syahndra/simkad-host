@@ -36,6 +36,7 @@ class TokenController extends Controller
 
         // Data yang akan dikirim ke view cetak
         $data = [
+            'ajuan'=>$ajuan,
             'nama' => $ajuan->nama ?? '-',
             'layanan' => $ajuan->layanan->namaLayanan,
             'token' => $ajuan->token,
