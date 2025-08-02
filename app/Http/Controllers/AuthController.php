@@ -209,4 +209,44 @@ class AuthController extends Controller
             ]);
         }
     }
+    public function resendVerification($id)
+    {
+        $user = \App\Models\User::findOrFail($id);
+
+        if ($user->email_verified_at) {
+            return back()->with('success', 'Email sudah diverifikasi.');
+        }
+
+        $token = base64_encode($user->email . '|' . now());
+        $verificationUrl = route('verification.custom', ['token' => $token]);
+
+        Mail::send('emails.custom_verification', [
+            'nama' => $user->nama,
+            'verificationUrl' => $verificationUrl
+        ], function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Verifikasi Email Anda');
+        });
+
+        return back()->with('success', 'Link verifikasi berhasil dikirim.');
+    }
+
+    public function verifyEmail($token)
+    {
+        $decoded = base64_decode($token);
+        [$email, $timestamp] = explode('|', $decoded);
+
+        $user = \App\Models\User::where('email', $email)->firstOrFail();
+
+        if (!$user->email_verified_at) {
+            $user->email_verified_at = now();
+            $user->save();
+        }
+
+        // Tampilkan view sukses verifikasi
+        return view('auth.verification_success', [
+            'nama' => $user->nama,
+            'email' => $user->email
+        ]);
+    }
 }

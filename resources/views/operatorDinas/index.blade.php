@@ -100,7 +100,7 @@
                                                             class="lni lni-trash-can"></i></button>
                                                 </form>
                                                 @if (!$item->email_verified_at)
-                                                <form action="#" method="POST" style="display:inline;">
+                                                <form action="{{ route('verification.resend', $item->idUser) }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     <button type="submit" class="text-info" title="Kirim Ulang Verifikasi"><i class="lni lni-envelope"></i></button>
                                                 </form>

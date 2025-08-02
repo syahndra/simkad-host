@@ -7,6 +7,7 @@ use App\Models\OperatorKec;
 use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class OperatorKecController extends Controller
 {
@@ -43,7 +44,19 @@ class OperatorKecController extends Controller
             'idKec' => $request->idKec,
         ]);
 
-        return redirect()->route('operatorKec.index')->with('success', 'Operator Kecamatan berhasil ditambahkan.');
+        // Kirim email verifikasi
+        $token = base64_encode($user->email . '|' . now());
+        $verificationUrl = route('verification.custom', ['token' => $token]);
+
+        Mail::send('emails.custom_verification', [
+            'nama' => $user->nama,
+            'verificationUrl' => $verificationUrl
+        ], function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Verifikasi Email Anda');
+        });
+
+        return redirect()->route('operatorKec.index')->with('success', 'Operator Kecamatan berhasil ditambahkan dan link verifikasi telah dikirim.');
     }
 
     public function edit($id)

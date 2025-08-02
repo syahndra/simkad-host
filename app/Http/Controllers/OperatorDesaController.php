@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OperatorKec;
+use Illuminate\Support\Facades\Mail;
 
 class OperatorDesaController extends Controller
 {
@@ -40,6 +41,7 @@ class OperatorDesaController extends Controller
             'idDesa' => 'required|exists:desa,idDesa'
         ]);
 
+        // Simpan user
         $user = User::create([
             'nama' => $request->nama,
             'email' => $request->email,
@@ -47,12 +49,25 @@ class OperatorDesaController extends Controller
             'roleUser' => 'operatorDesa',
         ]);
 
+        // Simpan detail operator desa
         OperatorDesa::create([
             'idUser' => $user->idUser,
             'idDesa' => $request->idDesa
         ]);
 
-        return redirect()->route('operatorDesa.index')->with('success', 'Operator Desa berhasil ditambahkan.');
+        // Kirim email verifikasi
+        $token = base64_encode($user->email . '|' . now());
+        $verificationUrl = route('verification.custom', ['token' => $token]);
+
+        Mail::send('emails.custom_verification', [
+            'nama' => $user->nama,
+            'verificationUrl' => $verificationUrl
+        ], function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Verifikasi Email Anda');
+        });
+
+        return redirect()->route('operatorDesa.index')->with('success', 'Operator Desa berhasil ditambahkan dan link verifikasi telah dikirim.');
     }
 
     public function edit($id)

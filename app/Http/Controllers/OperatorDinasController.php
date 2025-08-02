@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class OperatorDinasController extends Controller
 {
@@ -28,6 +29,7 @@ class OperatorDinasController extends Controller
             'roleUser' => 'required|in:opDinDafduk,opDinCapil',
         ]);
 
+        // Simpan user baru
         $user = User::create([
             'nama' => $request->nama,
             'email' => $request->email,
@@ -35,8 +37,21 @@ class OperatorDinasController extends Controller
             'roleUser' => $request->roleUser,
         ]);
 
-        return redirect()->route('operatorDinas.index')->with('success', 'Operator Dinas berhasil ditambahkan.');
+        // Kirim email verifikasi
+        $token = base64_encode($user->email . '|' . now());
+        $verificationUrl = route('verification.custom', ['token' => $token]);
+
+        Mail::send('emails.custom_verification', [
+            'nama' => $user->nama,
+            'verificationUrl' => $verificationUrl
+        ], function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Verifikasi Email Anda');
+        });
+
+        return redirect()->route('operatorDinas.index')->with('success', 'Operator Dinas berhasil ditambahkan dan email verifikasi telah dikirim.');
     }
+
 
     public function edit($id)
     {

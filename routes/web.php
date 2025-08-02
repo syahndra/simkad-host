@@ -102,3 +102,10 @@ Route::get('/get-desa-by-kecamatan/{idKec}', function ($idKec) {
 Route::get('/unverified', function () {
     return view('auth.unverified');
 })->name('auth.unverified');
+
+// Verifikasi Email
+// Kirim ulang email verifikasi
+Route::post('/resend-verification/{id}', [AuthController::class, 'resendVerification'])->name('verification.resend');
+
+// Link verifikasi email
+Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verification.custom');
