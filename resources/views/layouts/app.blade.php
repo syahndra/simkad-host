@@ -77,6 +77,7 @@
             searchable: true,
         });
     </script>
+
     <script>
         function exportToExcel(jenis) {
             const table = document.getElementById("table");
@@ -196,50 +197,132 @@
             });
 
             const table = document.getElementById("table");
-
-            // Ambil data filter
             const form = document.getElementById("filterForm");
-            const startDate = form.elements["startDate"].value || "Semua";
-            const endDate = form.elements["endDate"].value || "Semua";
 
-            const layananSelect = form.elements["layanan"];
-            const statusSelect = form.elements["status"];
+            // Ambil nilai dari form
+            const rawStartDate = form.elements["startDate"]?.value;
+            const rawEndDate = form.elements["endDate"]?.value;
 
-            let layananText = layananSelect.value;
-            if (layananSelect.selectedIndex === 0 || layananText.trim() === "") {
-                layananText = "Semua";
-            } else {
-                layananText = layananSelect.options[layananSelect.selectedIndex].text;
+            const formatDate = (dateStr) => {
+                if (!dateStr) return null;
+                const dateObj = new Date(dateStr);
+                return dateObj.toLocaleDateString("id-ID", {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            };
+
+            const startDateFormatted = formatDate(rawStartDate);
+            const endDateFormatted = formatDate(rawEndDate);
+
+            let tanggalLabel = "Semua";
+            if (startDateFormatted && endDateFormatted) {
+                tanggalLabel = `${startDateFormatted} – ${endDateFormatted}`;
+            } else if (startDateFormatted) {
+                tanggalLabel = `Mulai ${startDateFormatted}`;
+            } else if (endDateFormatted) {
+                tanggalLabel = `Sampai ${endDateFormatted}`;
             }
 
-            let statusText = statusSelect.value;
-            if (statusSelect.selectedIndex === 0 || statusText.trim() === "") {
-                statusText = "Semua";
-            } else {
-                statusText = statusSelect.options[statusSelect.selectedIndex].text;
+            const getTextOrDefault = (selectElement) => {
+                if (!selectElement || selectElement.selectedIndex === 0 || selectElement.value.trim() === "") {
+                    return "Semua";
+                }
+                return selectElement.options[selectElement.selectedIndex].text;
+            };
+
+            const layananText = getTextOrDefault(form.elements["layanan"]);
+            const statusText = getTextOrDefault(form.elements["status"]);
+            // const kecamatanText = getTextOrDefault(form.elements["kecamatan"]);
+            // const desaText = getTextOrDefault(form.elements["desa"]);
+
+            // Kecamatan
+            let kecamatanText = "Semua";
+            const kecamatanInput = form.elements["kecamatanInput"];
+            const kecamatanSelect = document.getElementById("filterKecamatan");
+
+            // 1. Cek apakah input teks/hidden 'kecamatan' memiliki isi
+            if (kecamatanInput && kecamatanInput.tagName === "INPUT" && kecamatanInput.value.trim() !== "") {
+                // Bisa ambil dari input, lalu cari labelnya jika perlu (optional)
+                kecamatanText = kecamatanInput.dataset.nama ?? kecamatanInput.value;
             }
 
-            // Tentukan judul berdasarkan jenis
+            // 2. Kalau input kosong, cek select (dan tidak disabled)
+            else if (kecamatanSelect && kecamatanSelect.value.trim() !== "") {
+                const selectedOption = kecamatanSelect.options[kecamatanSelect.selectedIndex];
+                kecamatanText = selectedOption?.text ?? "Semua";
+            }
+
+            // Desa
+            let desaText = "Semua";
+            const desaInput = form.elements["desaInput"];
+            const desaSelect = document.getElementById("filterDesa");
+
+            // 1. Cek apakah input teks/hidden 'desa' memiliki isi
+            if (desaInput && desaInput.tagName === "INPUT" && desaInput.value.trim() !== "") {
+                desaText = desaInput.dataset.nama ?? desaInput.value;
+            }
+
+            // 2. Kalau input kosong, cek select
+            else if (desaSelect && desaSelect.value.trim() !== "") {
+                const selectedOption = desaSelect.options[desaSelect.selectedIndex];
+                desaText = selectedOption?.text ?? "Semua";
+            }
+
+
+
+            const rtText = form.elements["rt"]?.value || "Semua";
+            const rwText = form.elements["rw"]?.value || "Semua";
+
+            // Waktu cetak
+            const now = new Date();
+            const tanggalCetak = now.toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+            const jamCetak = now.toLocaleTimeString("id-ID");
+
+            // Judul
             let judul = "DATA PENGAJUAN";
-            if (jenis === "dafduk") {
-                judul = "DATA PENGAJUAN DAFDUK";
-            } else if (jenis === "capil") {
-                judul = "DATA PENGAJUAN CAPIL";
-            } else {
-                judul = `DATA PENGAJUAN ${jenis.toUpperCase()}`;
-            }
+            if (jenis === "dafduk") judul = "DATA PENGAJUAN PENDAFTARAN PENDUDUK";
+            else if (jenis === "capil") judul = "DATA PENGAJUAN PENCATATAN SIPIL";
+            else judul = `DATA PENGAJUAN ${jenis.toUpperCase()}`;
 
-            // Tambahkan judul dan informasi filter ke PDF
+            // Kop instansi
+            doc.setFontSize(12);
+            doc.text("PEMERINTAH KABUPATEN BREBES", 40, 40);
+            doc.text("DINAS KEPENDUDUKAN DAN PENCATATAN SIPIL", 40, 55);
+            doc.text("Jl. Diponegoro No. 150 Telp. (0283) 671322 Brebes", 40, 70);
+            doc.line(40, 75, 800, 75); // garis
+
+            // Judul dokumen
             doc.setFontSize(14);
-            doc.text(judul, 40, 40);
+            doc.setFont(undefined, 'bold');
+            doc.text(judul, 40, 100);
 
             doc.setFontSize(10);
-            doc.text(`Tanggal Awal : ${startDate}`, 40, 60);
-            doc.text(`Tanggal Akhir : ${endDate}`, 40, 75);
-            doc.text(`Layanan : ${layananText}`, 300, 60);
-            doc.text(`Status : ${statusText}`, 300, 75);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Tanggal Cetak : ${tanggalCetak}, ${jamCetak}`, 600, 100);
 
-            // Ambil header dan isi tabel
+            // Informasi filter (2 kolom)
+            const leftX = 40;
+            const rightX = 350;
+            const baseY = 120;
+            const lineSpacing = 15;
+
+            // Kolom kiri
+            doc.text(`Tanggal     : ${tanggalLabel}`, leftX, baseY);
+            doc.text(`Layanan     : ${layananText}`, leftX, baseY + lineSpacing);
+            doc.text(`Status      : ${statusText}`, leftX, baseY + 2 * lineSpacing);
+
+            // Kolom kanan
+            doc.text(`Kecamatan   : ${kecamatanText}`, rightX, baseY);
+            doc.text(`Desa        : ${desaText}`, rightX, baseY + lineSpacing);
+            doc.text(`RT / RW     : ${rtText} / ${rwText}`, rightX, baseY + 2 * lineSpacing);
+
+            // Ambil data tabel
             const headers = Array.from(table.querySelectorAll("thead th"))
                 .slice(0, -3)
                 .map(th => th.innerText);
@@ -250,11 +333,11 @@
                 .map(td => td.innerText)
             );
 
-            // Tambahkan tabel
+            const tableStartY = baseY + 2 * lineSpacing + 10; // hanya selisih 10pt dari filter
             doc.autoTable({
                 head: [headers],
                 body: body,
-                startY: 95,
+                startY: tableStartY,
                 theme: 'grid',
                 styles: {
                     fontSize: 10
@@ -264,13 +347,22 @@
                 }
             });
 
-            // Nama file dinamis
-            const now = new Date();
+            const finalY = doc.previousAutoTable.finalY + 30;
+            doc.text("Mengetahui,", 600, finalY);
+            doc.text("Kepala Dinas", 600, finalY + 15);
+            doc.text("__________________", 600, finalY + 60);
+
+            doc.setFontSize(8);
+            doc.text("Dokumen ini dicetak secara otomatis dari Sistem Monitoring Kios Adminduk Desa dan sah tanpa tanda tangan basah.", 40, 570);
+
             const tanggal = now.toISOString().slice(0, 10);
             const jam = now.toTimeString().slice(0, 8).replace(/:/g, "-");
             const fileName = `data-export-${jenis}-${tanggal}_${jam}.pdf`;
 
-            doc.save(fileName);
+            // doc.save(fileName);
+            doc.output('bloburl'); // return blob URL
+            const blobURL = doc.output('bloburl');
+            window.open(blobURL, '_blank');
         }
     </script>
 

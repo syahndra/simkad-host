@@ -50,16 +50,19 @@
                             <a href="{{ route('ajuanDafduk.create') }}" class="btn btn-success">Tambah +</a>
                             @endif
                             <!-- Dropdown Export -->
-                            <div class="dropdown">
+                            <!-- <div class="dropdown">
                                 <button class="btn btn-primary" type="button" data-bs-toggle="dropdown"
                                     aria-expanded="false">
                                     Export
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><button class="dropdown-item" onclick="exportToExcel('dafduk')">Export ke Excel</button>
-                                    <li><button class="dropdown-item" onclick="exportToPDF('dafduk')">Export ke PDF</button>
+                                    <li><button class="dropdown-item" onclick="exportToExcel('dafduk')">Export ke Excel</button></li>
+                                    <li><button class="dropdown-item" onclick="exportToPDF('dafduk')">Export ke PDF</button></li>
                                 </ul>
-                            </div>
+                            </div> -->
+                            <button class="btn btn-primary" onclick="exportToPDF('dafduk')">
+                                Export
+                            </button>
                         </div>
                         <hr>
                         <!-- Filter -->
@@ -91,10 +94,9 @@
                                 </select>
                             </div>
                             @if (auth()->user()->roleUser !== 'operatorDesa')
-                            <div class="col-md-3">
-                                <select class="form-control" name="kecamatan" id="filterKecamatan"
-                                    @if(auth()->user()->roleUser == 'operatorKecamatan') disabled @endif>
-                                    <option disabled selected>-- Pilih Kecamatan --</option>
+                            <div class="col-md-3" @if(auth()->user()->roleUser == 'operatorKecamatan') hidden @endif>
+                                <select class="form-control" name="kecamatan" id="filterKecamatan">
+                                    <option value="" disabled selected>-- Pilih Kecamatan --</option>
                                     <option value="">Semua</option>
                                     @foreach ($listKecamatan as $kec)
                                     @if (auth()->user()->roleUser == 'operatorKecamatan')
@@ -107,12 +109,14 @@
                             </div>
                             <div class="col-md-3">
                                 <select class="form-control" name="desa" id="filterDesa">
-                                    <option disabled selected>-- Pilih Desa --</option>
+                                    <option value="" disabled selected>-- Pilih Desa --</option>
                                     <option value="">Semua</option>
                                     {{-- Nantinya desa akan diubah via JavaScript --}}
                                 </select>
                             </div>
                             @else
+                            <input type="hidden" name="kecamatanInput" value="{{ $namaKecamatan }}">
+                            <input type="hidden" name="desaInput" value="{{ $namaDesa }}">
                             <div class="col-md-2">
                                 <input type="text" name="rw" class="form-control" placeholder="RW"
                                     maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">

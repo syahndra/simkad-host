@@ -21,10 +21,14 @@ class AjuanCapilController extends Controller
     public function index()
     {
         $listLayanan = Layanan::where('jenis', 'capil')->get();
-        $listKecamatan = Kecamatan::whereIn('idKec', Desa::select('idKec'))->get();
+        $listKecamatan = null;
+        $namaKecamatan = null;
+        $namaDesa = null;
         if (Auth::user()->roleUser === 'operatorDesa') {
             $opdes = OperatorDesa::where('idUser', Auth::user()->idUser)->first();
-
+            $listKecamatan = Kecamatan::where('idKec', $opdes->desa->kecamatan->idKec)->get();
+            $namaKecamatan = $listKecamatan->first()?->namaKec;
+            $namaDesa = $opdes->desa->namaDesa ?? null;
             $ajuan = AjuanCapil::with('layanan', 'operatorDesa.desa.kecamatan', 'respon')
                 ->whereHas('operatorDesa', function ($query) use ($opdes) {
                     $query->where('idDesa', $opdes->idDesa);
@@ -32,10 +36,11 @@ class AjuanCapilController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
         } else {
+            $listKecamatan = Kecamatan::whereIn('idKec', Desa::select('idKec'))->get();
             $ajuan = AjuanCapil::with('layanan', 'operatorDesa.desa.kecamatan', 'respon')->orderBy('created_at', 'desc')->get();
         }
 
-        return view('ajuanCapil.index', compact('ajuan', 'listLayanan', 'listKecamatan'));
+        return view('ajuanCapil.index', compact('ajuan', 'listLayanan', 'listKecamatan', 'namaKecamatan', 'namaDesa'));
     }
 
     public function create()
@@ -160,11 +165,12 @@ class AjuanCapilController extends Controller
                 $q->where('idKec', $request->kecamatan);
             });
         }
-
-        if ($request->desa) {
-            $query->whereHas('operatorDesa', function ($q) use ($request) {
-                $q->where('idDesa', $request->desa);
-            });
+        if ($user->roleUser != 'operatorDesa') {
+            if ($request->desa) {
+                $query->whereHas('operatorDesa', function ($q) use ($request) {
+                    $q->where('idDesa', $request->desa);
+                });
+            }
         }
 
         if ($request->rt) {

@@ -24,9 +24,14 @@ class AjuanDafdukController extends Controller
         $user = Auth::user();
         $listLayanan = Layanan::where('jenis', 'dafduk')->get();
         $listKecamatan = null;
+        $namaKecamatan = null;
+        $namaDesa = null;
 
         if ($user->roleUser === 'operatorDesa') {
             $opdes = OperatorDesa::where('idUser', $user->idUser)->first();
+            $listKecamatan = Kecamatan::where('idKec', $opdes->desa->kecamatan->idKec)->get();
+            $namaKecamatan = $listKecamatan->first()?->namaKec;
+            $namaDesa = $opdes->desa->namaDesa ?? null;
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')
                 ->whereHas('operatorDesa', function ($query) use ($opdes) {
                     $query->where('idDesa', $opdes->idDesa);
@@ -61,7 +66,9 @@ class AjuanDafdukController extends Controller
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')->orderBy('created_at', 'desc')->get();
         }
 
-        return view('ajuanDafduk.index', compact('ajuan', 'listLayanan', 'listKecamatan'));
+        // dd($namaKecamatan);
+
+        return view('ajuanDafduk.index', compact('ajuan', 'listLayanan', 'listKecamatan', 'namaKecamatan', 'namaDesa'));
     }
 
     public function create()
@@ -195,11 +202,12 @@ class AjuanDafdukController extends Controller
                 $q->where('idKec', $request->kecamatan);
             });
         }
-
-        if ($request->desa) {
-            $query->whereHas('operatorDesa', function ($q) use ($request) {
-                $q->where('idDesa', $request->desa);
-            });
+        if ($user->roleUser != 'operatorDesa') {
+            if ($request->desa) {
+                $query->whereHas('operatorDesa', function ($q) use ($request) {
+                    $q->where('idDesa', $request->desa);
+                });
+            }
         }
 
         if ($request->rt) {

@@ -109,3 +109,4 @@ Route::post('/resend-verification/{id}', [AuthController::class, 'resendVerifica
 
 // Link verifikasi email
 Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verification.custom');
+// Route::get('/ajuan-dafduk/export', [AjuanDafdukController::class, 'exportPDF'])->name('ajuanDafduk.export');
