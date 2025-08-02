@@ -76,11 +76,22 @@
                                 </div>
                                 <form method="POST" action="/login">
                                     @csrf
+
+                                    {{-- Tampilkan pesan error --}}
+                                    @if ($errors->any())
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        @foreach ($errors->all() as $error)
+                                        <div>{{ $error }}</div>
+                                        @endforeach
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                    @endif
+
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="input-style-1">
                                                 <label>Email</label>
-                                                <input type="email" name="email" placeholder="Email" />
+                                                <input type="email" name="email" value="{{ old('email') }}" placeholder="Email" />
                                             </div>
                                         </div>
                                         <!-- end col -->
@@ -103,8 +114,7 @@
                                         <!-- end col -->
                                         <div class="col-12">
                                             <div class="button-group d-flex justify-content-center flex-wrap">
-                                                <button class="main-btn primary-btn btn-hover w-100 text-center"
-                                                    type="submit">
+                                                <button class="main-btn primary-btn btn-hover w-100 text-center" type="submit">
                                                     Sign In
                                                 </button>
                                             </div>

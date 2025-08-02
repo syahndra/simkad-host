@@ -26,9 +26,9 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if (!$user) {
-            return back()->withErrors([
-                'email' => 'Email tidak ditemukan dalam sistem kami.',
-            ]);
+            return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => 'Email tidak ditemukan dalam sistem kami.']);
         }
 
         // Cek apakah email sudah diverifikasi
@@ -44,9 +44,9 @@ class AuthController extends Controller
             return redirect()->intended('dashboard');
         }
 
-        return back()->withErrors([
-            'email' => 'Kredensial tidak sesuai.',
-        ]);
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => 'Email atau password tidak sesuai.']);
     }
 
     public function logout(Request $request)
