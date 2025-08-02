@@ -23,13 +23,29 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user) {
+            return back()->withErrors([
+                'email' => 'Email tidak ditemukan dalam sistem kami.',
+            ]);
+        }
+
+        // Cek apakah email sudah diverifikasi
+        if (is_null($user->email_verified_at)) {
+            return redirect()->route('auth.unverified')->with([
+                'email' => $user->email
+            ]);
+        }
+
+        // Proses autentikasi
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->intended('dashboard');
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'email' => 'Kredensial tidak sesuai.',
         ]);
     }
 
@@ -136,7 +152,7 @@ class AuthController extends Controller
             'password' => 'required|confirmed|min:6',
         ]);
 
-        
+
         $reset = Reset::where('email', $request->email)
             ->where('otp_code', $request->otp_code)
             ->where('otp_expires_at', '>', Carbon::now('Asia/Jakarta'))

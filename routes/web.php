@@ -98,3 +98,7 @@ Route::get('/dokumen_final/{filename}', function ($filename) {
 Route::get('/get-desa-by-kecamatan/{idKec}', function ($idKec) {
     return \App\Models\Desa::where('idKec', $idKec)->get();
 });
+
+Route::get('/unverified', function () {
+    return view('auth.unverified');
+})->name('auth.unverified');
