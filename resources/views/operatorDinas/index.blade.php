@@ -56,7 +56,7 @@
                             <table id="table" class="table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>No</th>
                                         <th>Nama</th>
                                         <th>Email</th>
                                         <th>Email Terverifikasi</th>

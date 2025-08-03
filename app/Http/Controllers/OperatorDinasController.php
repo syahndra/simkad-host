@@ -49,7 +49,12 @@ class OperatorDinasController extends Controller
                 ->subject('Verifikasi Email Anda');
         });
 
-        return redirect()->route('operatorDinas.index')->with('success', 'Operator Dinas berhasil ditambahkan dan email verifikasi telah dikirim.');
+        try {
+            return redirect()->route('operatorDinas.index')
+                ->with('success', 'Operator Dinas berhasil ditambahkan dan email verifikasi telah dikirim.');
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
     }
 
 
@@ -84,8 +89,15 @@ class OperatorDinasController extends Controller
     public function destroy($id)
     {
         $opdinas = User::findOrFail($id);
-        $opdinas->delete();
 
-        return redirect()->route('operatorDinas.index')->with('success', 'Operator Dinas dihapus.');
+        $digunakan = $opdinas->respon()->exists();
+
+        if ($digunakan) {
+            $opdinas->delete(); // soft delete
+            return redirect()->route('operatorDinas.index')->with('success', 'Data operator Dinas masih digunakan, jadi hanya disembunyikan dari daftar.');
+        } else {
+            $opdinas->forceDelete(); // hard delete
+            return redirect()->route('operatorDinas.index')->with('success', 'Data operator Dinas berhasil dihapus.');
+        }
     }
 }

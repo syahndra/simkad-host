@@ -111,10 +111,20 @@ class OperatorDesaController extends Controller
     public function destroy($id)
     {
         $op = OperatorDesa::with('user')->findOrFail($id);
-        $op->user->delete();
-        $op->delete();
+        $user = $op->user;
 
-        return redirect()->route('operatorDesa.index')->with('success', 'Data berhasil dihapus.');
+        $digunakan = $op->ajuanDafduk()->exists() || $op->ajuanCapil()->exists() || $user->respon()->exists();
+
+        // Soft delete user jika masih punya respon
+        if ($digunakan) {
+            $user->delete(); // soft delete
+            $op->delete(); // soft delete
+            return redirect()->route('operatorDesa.index')->with('success', 'Operator masih memiliki pengajuan, jadi hanya disembunyikan dari daftar.');
+        } else {
+            $user->forceDelete(); // hard delete
+            $op->forceDelete(); // hard delete
+            return redirect()->route('operatorDesa.index')->with('success', 'Data operator berhasil dihapus.');
+        }
     }
 
     public function getDesaByKecamatan($idKec)

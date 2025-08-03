@@ -151,8 +151,18 @@ class AjuanDafdukController extends Controller
 
     public function destroy($id)
     {
-        AjuanDafduk::findOrFail($id)->delete();
-        return redirect()->route('ajuanDafduk.index')->with('success', 'Ajuan berhasil dihapus.');
+        // Cek apakah user login adalah operatorDesa
+        if (Auth::user()->roleUser !== 'operatorDesa') {
+            return redirect()->route('ajuanDafduk.index')->with('error', 'Anda tidak memiliki izin untuk menghapus ajuan ini.');
+        }
+        $data = AjuanDafduk::findOrFail($id);
+        if ($data->statAjuan === 'dalam antrian') {
+            $data->forceDelete();
+            return redirect()->route('ajuanDafduk.index')->with('success', 'Ajuan berhasil dihapus.');
+        } else {
+            $data->delete(); // soft delete
+            return redirect()->route('ajuanDafduk.index')->with('success', 'Data ajuan sudah ditindaklanjuti, jadi hanya disembunyikan dari daftar.');
+        }
     }
 
     public function filter(Request $request)

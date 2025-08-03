@@ -6,10 +6,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $table = 'users';
     protected $primaryKey = 'idUser';
@@ -20,4 +21,9 @@ class User extends Authenticatable
         'roleUser',
         'status'
     ];
+
+    public function respon()
+    {
+        return $this->hasMany(Respon::class, 'idUser');
+    }
 }

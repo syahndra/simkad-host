@@ -55,7 +55,7 @@
                                 <table id="table" class="table">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th>No</th>
                                             <th>Nama Kecamatan</th>
                                             <th>Aksi</th>
                                         </tr>
@@ -63,7 +63,7 @@
                                     <tbody>
                                         @foreach ($kecamatan as $item)
                                             <tr>
-                                                <td>{{ $item->idKec }}</td>
+                                                <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $item->namaKec }}</td>
                                                 <td>
                                                     <div class="action">

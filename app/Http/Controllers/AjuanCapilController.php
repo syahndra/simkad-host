@@ -125,8 +125,18 @@ class AjuanCapilController extends Controller
 
     public function destroy($id)
     {
-        AjuanCapil::findOrFail($id)->delete();
-        return redirect()->route('ajuanCapil.index')->with('success', 'Ajuan berhasil dihapus.');
+        // Cek apakah user login adalah operatorDesa
+        if (Auth::user()->roleUser !== 'operatorDesa') {
+            return redirect()->route('ajuanCapil.index')->with('error', 'Anda tidak memiliki izin untuk menghapus ajuan ini.');
+        }
+        $data = AjuanCapil::findOrFail($id);
+        if ($data->statAjuan === 'dalam antrian') {
+            $data->forceDelete();
+            return redirect()->route('ajuanCapil.index')->with('success', 'Ajuan berhasil dihapus.');
+        } else {
+            $data->delete(); // soft delete
+            return redirect()->route('ajuanCapil.index')->with('success', 'Data ajuan sudah ditindaklanjuti, jadi hanya disembunyikan dari daftar.');
+        }
     }
 
     public function filter(Request $request)

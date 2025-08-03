@@ -51,7 +51,14 @@ class KecamatanController extends Controller
 
     public function destroy(Kecamatan $kecamatan)
     {
-        $kecamatan->delete();
-        return redirect()->route('kecamatan.index')->with('success', 'Kecamatan berhasil dihapus.');
+        $digunakan = $kecamatan->desa()->exists() || $kecamatan->operatorKec()->exists();
+
+        if ($digunakan) {
+            $kecamatan->delete();
+            return redirect()->route('kecamatan.index')->with('success', 'Data kecamatan masih digunakan, jadi hanya disembunyikan dari daftar.');
+        } else {
+            $kecamatan->forceDelete();
+            return redirect()->route('kecamatan.index')->with('success', 'Data kecamatan berhasil dihapus.');
+        }
     }
 }

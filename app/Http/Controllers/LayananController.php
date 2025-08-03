@@ -52,7 +52,18 @@ class LayananController extends Controller
     public function destroy($id)
     {
         $data = Layanan::findOrFail($id);
-        $data->delete();
-        return redirect()->route('layanan.index')->with('success', 'Layanan berhasil dihapus.');
+
+        // Cek apakah ada data relasi
+        $digunakan = $data->ajuanDafduk()->exists() || $data->ajuanCapil()->exists();
+
+        if ($digunakan) {
+            // Soft delete
+            $data->delete();
+            return redirect()->route('layanan.index')->with('success', 'Data layanan masih digunakan, jadi hanya disembunyikan dari daftar.');
+        } else {
+            // Hard delete permanen
+            $data->forceDelete();
+            return redirect()->route('layanan.index')->with('success', 'Data layanan berhasil dihapus.');
+        }
     }
 }

@@ -97,9 +97,18 @@ class OperatorKecController extends Controller
     public function destroy($id)
     {
         $operatorKec = OperatorKec::findOrFail($id);
-        $operatorKec->user()->delete(); // Hapus user otomatis
-        $operatorKec->delete();
+        $user = $operatorKec->user;
 
-        return redirect()->route('operatorKec.index')->with('success', 'Data operator dihapus.');
+        if ($user->respon()->exists()) {
+            $user->delete(); // soft delete
+            $operatorKec->delete();
+
+            return redirect()->route('operatorKec.index')->with('success', 'Data operator kecamatan masih digunakan, jadi hanya disembunyikan dari daftar.');
+        } else {
+            $user->forceDelete(); // hard delete
+            $operatorKec->forceDelete();
+
+            return redirect()->route('operatorKec.index')->with('success', 'Data operator kecamatan berhasil dihapus.');
+        }
     }
 }

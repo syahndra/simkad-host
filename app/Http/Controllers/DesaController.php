@@ -55,8 +55,15 @@ class DesaController extends Controller
     public function destroy($id)
     {
         $desa = Desa::findOrFail($id);
-        $desa->delete();
-        return redirect()->route('desa.index')->with('success', 'Desa berhasil dihapus.');
+
+        $digunakan = $desa->operatorDesa()->exists();
+
+        if ($digunakan) {
+            $desa->delete();
+            return redirect()->route('desa.index')->with('success', 'Data desa masih digunakan, jadi hanya disembunyikan dari daftar.');
+        } else {
+            $desa->forceDelete();
+            return redirect()->route('desa.index')->with('success', 'Data desa berhasil dihapus.');
+        }
     }
 }
-

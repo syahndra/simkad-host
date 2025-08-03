@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Desa extends Model
 {
+    use SoftDeletes;
     protected $table = 'desa';
     protected $primaryKey = 'idDesa';
     public $timestamps = false;
@@ -15,5 +17,9 @@ class Desa extends Model
     public function kecamatan()
     {
         return $this->belongsTo(Kecamatan::class, 'idKec', 'idKec');
+    }
+    public function operatorDesa()
+    {
+        return $this->hasMany(OperatorDesa::class, 'idDesa');
     }
 }

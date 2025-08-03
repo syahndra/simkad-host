@@ -61,6 +61,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['checkRole:operatorDesa,opDinCapil,admin'])->group(function () {
         Route::resource('ajuanCapil', AjuanCapilController::class);
+        // Route::get('/ajuanCapil/delete/{id}', [AjuanCapilController::class, 'destroy'])->name('ajuanCapil.destroy');
         Route::get('/ajuanCapil/{id}', [AjuanCapilController::class, 'show'])->name('ajuanCapil.show');
     });
 

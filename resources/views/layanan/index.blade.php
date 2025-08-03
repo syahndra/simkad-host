@@ -50,7 +50,7 @@
                                 <table id="table" class="table">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th>No</th>
                                             <th>Nama Layanan</th>
                                             <th>Jenis</th>
                                             <th>Akses Verifikasi</th>
@@ -60,7 +60,7 @@
                                     <tbody>
                                         @foreach($layanan as $item)
                                             <tr>
-                                                <td>{{ $item->idLayanan }}</td>
+                                                <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $item->namaLayanan }}</td>
                                                 <td>{{ ucfirst($item->jenis) }}</td>
                                                 <td>{{ str_replace('_', ' ', ucfirst($item->aksesVer)) }}</td>

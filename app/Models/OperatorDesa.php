@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Desa;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OperatorDesa extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'operatordesa';
     protected $primaryKey = 'idOpdes';
     public $timestamps = false;
