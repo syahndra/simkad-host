@@ -46,12 +46,27 @@
                         </div>
                         @endif
 
-                        <a href="{{ route('operatorDesa.create') }}" class="btn btn-success mb-3">Tambah +</a>
+                        <div class="d-flex gap-2 align-items-center mb-3">
+                            <a href="{{ route('operatorDesa.create') }}" class="btn btn-success mb-3">Tambah +</a>
+                        </div>
+                        <hr>
+                        <!-- Filter -->
+                        <form id="filterForm" class="row g-2 align-items-end mb-3">
+                            <div class="col-md-3">
+                                <select class="form-control" name="data">
+                                    <option value="aktif" selected>Data Aktif</option>
+                                    <option value="terhapus">Data Terhapus</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                            </div>
+                        </form>
                         <div class="table-responsive">
                             <table id="table" class="table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>No</th>
                                         <th>Nama</th>
                                         <th>Email</th>
                                         <th>Email Terverifikasi</th>
@@ -60,7 +75,7 @@
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tableBody">
                                     @foreach ($data as $i => $op)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
@@ -115,4 +130,65 @@
     <!-- end container -->
 </section>
 <!-- ========== table components end ========== -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function renderActions(a) {
+        let html = '';
+
+        html += `<div class="action">`;
+        if (a.deleted_at) {
+            html +=
+                `<button><a href="/operatorDesa/restore/${a.idOpdes}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
+        } else {
+            html +=
+                `<a href="/operatorDesa/${a.idOpdes}/edit" class="text-warning" title="Edit Ajuan"><i class="lni lni-pencil"></i></a>`;
+            html += `<form action="/operatorDesa/${a.idOpdes}" method="POST" style="display:inline;">
+                            <input type="hidden" name="_token" value="${csrfToken}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
+                                <i class="lni lni-trash-can"></i>
+                            </button>
+                         </form>`;
+        }
+
+        html += `</div>`;
+
+        return html;
+    }
+
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = $(this).serialize();
+        // console.log('Form data:', formData);
+        $.ajax({
+            url: "{{ route('operatorDesa.filter') }}",
+            type: 'GET',
+            data: formData,
+            success: function(res) {
+                let html = '';
+                res.data.forEach((a, i) => {
+                    html += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${a.user.nama}</td>
+                        <td>${a.user.email}</td>
+                        <td>
+                            ${a.user.email_verified_at 
+                                ? '<span class="badge bg-success">Terverifikasi</span>' 
+                                : '<span class="badge bg-danger">Belum</span>'}
+                        </td>
+                        <td>${a.desa.namaDesa}</td>
+                        <td>${a.desa.kecamatan.namaKec}</td>
+                        <td>${renderActions(a)}</td>
+                    </tr>`;
+                });
+                $('#tableBody').html(html);
+            },
+            error: function(err) {
+                alert('Gagal memfilter data!');
+                console.error(err);
+            }
+        });
+    });
+</script>
 @endsection

@@ -132,4 +132,36 @@ class OperatorDesaController extends Controller
         $desa = Desa::where('idKec', $idKec)->get(['idDesa', 'namaDesa']);
         return response()->json($desa);
     }
+
+    public function filter(Request $request)
+    {
+        $opkec = OperatorKec::where('idUser', Auth::user()->idUser)->first();
+        $query = OperatorDesa::with(['user', 'desa.kecamatan'])
+            ->whereHas('desa', function ($query) use ($opkec) {
+                $query->where('idKec', $opkec->idKec);
+            });
+
+        if ($request->data === 'terhapus') {
+            $query->onlyTrashed();
+        }
+        $result = $query->get();
+
+        return response()->json([
+            'data' => $result
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $op = OperatorDesa::withTrashed()->where('idOpdes', $id)->firstOrFail();
+        $user = User::withTrashed()->where('idUser', $op->idUser)->first();
+
+        $op->restore();
+
+        if ($user) {
+            $user->restore();
+        }
+
+        return redirect()->route('operatorDesa.index')->with('success', 'Data operator berhasil dipulihkan.');
+    }
 }

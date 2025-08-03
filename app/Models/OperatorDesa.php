@@ -23,7 +23,7 @@ class OperatorDesa extends Model
     // Relasi ke user
     public function user()
     {
-        return $this->belongsTo(User::class, 'idUser', 'idUser');
+        return $this->belongsTo(User::class, 'idUser', 'idUser')->withTrashed();
     }
 
     // Relasi ke desa

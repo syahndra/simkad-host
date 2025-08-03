@@ -14,6 +14,7 @@ use App\Http\Controllers\ResponController;
 use App\Http\Controllers\FinalDokumenController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\DashboardController;
+use App\Models\OperatorDesa;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\File;
 
@@ -39,6 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ajuan-capil/filter', [AjuanCapilController::class, 'filter'])->name('ajuanCapil.filter');
     Route::get('/ubahProfil', [AuthController::class, 'ubahProfil'])->name('ubahProfil');
     Route::put('/ubahProfil', [AuthController::class, 'updateProfil'])->name('profil.update');
+    Route::get('/operatorDesa/filter', [OperatorDesaController::class, 'filter'])->name('operatorDesa.filter');
 
     Route::middleware(['checkRole:admin'])->group(function () {
         Route::resource('kecamatan', KecamatanController::class);
@@ -53,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['checkRole:operatorKecamatan'])->group(function () {
         Route::resource('operatorDesa', OperatorDesaController::class);
         Route::get('/getDesa-by-kecamatan/{idKec}', [OperatorDesaController::class, 'getDesaByKecamatan'])->name('getDesaByKecamatan');
+        Route::get('/operatorDesa/restore/{id}', [OperatorDesaController::class, 'restore'])->name('operatorDesa.restore');
     });
     Route::middleware(['checkRole:operatorDesa,operatorKecamatan,opDinDafduk,admin'])->group(function () {
         Route::resource('ajuanDafduk', AjuanDafdukController::class);
