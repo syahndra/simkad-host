@@ -19,11 +19,11 @@ class OperatorKec extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'idUser', 'idUser')->withTrashed();
+        return $this->belongsTo(User::class, 'idUser')->withTrashed();
     }
 
     public function kecamatan()
     {
-        return $this->belongsTo(Kecamatan::class, 'idKec', 'idKec');
+        return $this->belongsTo(Kecamatan::class, 'idKec')->withTrashed();
     }
 }

@@ -111,4 +111,33 @@ class OperatorKecController extends Controller
             return redirect()->route('operatorKec.index')->with('success', 'Data operator kecamatan berhasil dihapus.');
         }
     }
+
+    public function filter(Request $request)
+    {
+        $query = OperatorKec::with(['user', 'kecamatan']);
+
+        if ($request->data === 'terhapus') {
+            $query->onlyTrashed();
+        }
+
+        $result = $query->get();
+
+        return response()->json([
+            'data' => $result
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $op = OperatorKec::withTrashed()->where('idOpkec', $id)->firstOrFail();
+        $user = User::withTrashed()->where('idUser', $op->idUser)->first();
+
+        $op->restore();
+
+        if ($user) {
+            $user->restore();
+        }
+
+        return redirect()->route('operatorKec.index')->with('success', 'Data operator kecamatan berhasil dipulihkan.');
+    }
 }

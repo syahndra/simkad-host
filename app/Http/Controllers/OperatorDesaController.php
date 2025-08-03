@@ -136,19 +136,19 @@ class OperatorDesaController extends Controller
     public function filter(Request $request)
     {
         $opkec = OperatorKec::where('idUser', Auth::user()->idUser)->first();
+
         $query = OperatorDesa::with(['user', 'desa.kecamatan'])
-            ->whereHas('desa', function ($query) use ($opkec) {
-                $query->where('idKec', $opkec->idKec);
+            ->whereHas('desa', function ($q) use ($opkec) {
+                $q->where('idKec', $opkec->idKec);
             });
 
         if ($request->data === 'terhapus') {
-            $query->onlyTrashed();
+            $query = $query->onlyTrashed();
         }
-        $result = $query->get();
 
-        return response()->json([
-            'data' => $result
-        ]);
+        $data = $query->get();
+
+        return response()->json(['data' => $data]);
     }
 
     public function restore($id)
