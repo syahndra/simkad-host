@@ -42,6 +42,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/ubahProfil', [AuthController::class, 'updateProfil'])->name('profil.update');
     Route::get('/operatorDesa/filter', [OperatorDesaController::class, 'filter'])->name('operatorDesa.filter');
     Route::get('/operatorKec/filter', [OperatorKecController::class, 'filter'])->name('operatorKec.filter');
+    Route::get('/operatorDinas/filter', [OperatorDinasController::class, 'filter'])->name('operatorDinas.filter');
 
     Route::middleware(['checkRole:admin'])->group(function () {
         Route::resource('kecamatan', KecamatanController::class);
@@ -53,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('operatorDinas', OperatorDinasController::class);
         Route::resource('operatorKec', OperatorKecController::class);
         Route::get('/operatorKec/restore/{id}', [OperatorKecController::class, 'restore'])->name('operatorKec.restore');
+        Route::get('/operatorDinas/restore/{id}', [OperatorDinasController::class, 'restore'])->name('operatorDinas.restore');
     });
     Route::middleware(['checkRole:operatorKecamatan'])->group(function () {
         Route::resource('operatorDesa', OperatorDesaController::class);

@@ -133,6 +133,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     const csrfToken = '{{ csrf_token() }}';
+
     function renderActions(a) {
         let html = '';
 
@@ -141,15 +142,26 @@
             html +=
                 `<button><a href="/operatorDesa/restore/${a.idOpdes}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
         } else {
-            html +=
-                `<a href="/operatorDesa/${a.idOpdes}/edit" class="text-warning" title="Edit Ajuan"><i class="lni lni-pencil"></i></a>`;
+            html += `<a href="/operatorDesa/${a.idOpdes}/edit" class="text-warning" title="Edit Ajuan">
+                <i class="lni lni-pencil"></i>
+            </a>`;
+
             html += `<form action="/operatorDesa/${a.idOpdes}" method="POST" style="display:inline;">
-                            <input type="hidden" name="_token" value="${csrfToken}">
-                            <input type="hidden" name="_method" value="DELETE">
-                            <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
-                                <i class="lni lni-trash-can"></i>
-                            </button>
-                         </form>`;
+                <input type="hidden" name="_token" value="${csrfToken}">
+                <input type="hidden" name="_method" value="DELETE">
+                <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
+                    <i class="lni lni-trash-can"></i>
+                </button>
+            </form>`;
+
+            if (!a.user?.email_verified_at) {
+                html += `<form action="/resend-verification/${a.user.idUser}" method="POST" style="display:inline;">
+                    <input type="hidden" name="_token" value="${csrfToken}">
+                    <button type="submit" class="text-info" title="Kirim Ulang Verifikasi">
+                        <i class="lni lni-envelope"></i>
+                    </button>
+                </form>`;
+            }
         }
 
         html += `</div>`;

@@ -100,4 +100,30 @@ class OperatorDinasController extends Controller
             return redirect()->route('operatorDinas.index')->with('success', 'Data operator Dinas berhasil dihapus.');
         }
     }
+
+    public function filter(Request $request)
+    {
+        $query = User::whereIn('roleUser', ['opDinCapil', 'opDinDafduk']);
+
+        if ($request->data === 'terhapus') {
+            $query->onlyTrashed();
+        }
+
+        $result = $query->get();
+
+        return response()->json([
+            'data' => $result
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $user = User::withTrashed()->where('idUser', $id)->first();
+
+        if ($user) {
+            $user->restore();
+        }
+
+        return redirect()->route('operatorKec.index')->with('success', 'Data operator kecamatan berhasil dipulihkan.');
+    }
 }

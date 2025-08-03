@@ -51,7 +51,24 @@
                         </div>
                         @endif
 
-                        <a href="{{ route('operatorDinas.create') }}" class="btn btn-success mb-3">Tambah +</a>
+                        <div class="d-flex gap-2 align-items-center mb-3">
+                            <a href="{{ route('operatorDinas.create') }}" class="btn btn-success mb-3">Tambah +</a>
+                        </div>
+
+                        <hr>
+                        <!-- Filter -->
+                        <form id="filterForm" class="row g-2 align-items-end mb-3">
+                            <div class="col-md-3">
+                                <select class="form-control" name="data">
+                                    <option value="aktif" selected>Data Aktif</option>
+                                    <option value="terhapus">Data Terhapus</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                            </div>
+                        </form>
+
                         <div class="table-responsive">
                             <table id="table" class="table">
                                 <thead>
@@ -64,7 +81,7 @@
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tableBody">
                                     @foreach ($data as $item)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
@@ -126,4 +143,89 @@
     <!-- end container -->
 </section>
 <!-- ========== table components end ========== -->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const csrfToken = '{{ csrf_token() }}';
+
+    function renderActions(a) {
+        let html = '';
+
+        html += `<div class="action">`;
+        if (a.deleted_at) {
+            html +=
+                `<button><a href="/operatorDinas/restore/${a.idUser}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
+        } else {
+            html += `<a href="/operatorDinas/${a.idUser}/edit" class="text-warning" title="Edit Ajuan">
+                <i class="lni lni-pencil"></i>
+            </a>`;
+
+            html += `<form action="/operatorDinas/${a.idUser}" method="POST" style="display:inline;">
+                <input type="hidden" name="_token" value="${csrfToken}">
+                <input type="hidden" name="_method" value="DELETE">
+                <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
+                    <i class="lni lni-trash-can"></i>
+                </button>
+            </form>`;
+
+            // Tambahan tombol "Kirim Ulang Verifikasi" jika belum diverifikasi
+            if (!a.email_verified_at) {
+                html += `<form action="/resend-verification/${a.idUser}" method="POST" style="display:inline;">
+                <input type="hidden" name="_token" value="${csrfToken}">
+                <button type="submit" class="text-info" title="Kirim Ulang Verifikasi">
+                    <i class="lni lni-envelope"></i>
+                </button>
+            </form>`;
+            }
+        }
+
+        html += `</div>`;
+
+        return html;
+    }
+
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = $(this).serialize();
+        console.log('Form data:', formData);
+        $.ajax({
+            url: "{{ route('operatorDinas.filter') }}",
+            type: 'GET',
+            data: formData,
+            success: function(res) {
+                let html = '';
+                res.data.forEach((a, i) => {
+                    html += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${a.nama}</td>
+                        <td>${a.email}</td>
+                        <td>
+                            ${ a.email_verified_at 
+                            ? '<span class="badge bg-success">Terverifikasi</span>' 
+                            : '<span class="badge bg-danger">Belum</span>'}
+                        </td>
+                        <td>
+                            ${
+                                a.roleUser === 'opDinCapil' 
+                                    ? 'Capil'
+                                    : a.roleUser === 'opDinDafduk'
+                                        ? 'Dafduk'
+                                        : a.roleUser 
+                                            ? a.roleUser.charAt(0).toUpperCase() + a.roleUser.slice(1)
+                                            : '<span class="badge bg-danger">Belum</span>'
+                            }
+                        </td>
+                        <td>${renderActions(a)}</td>
+                    </tr>`;
+                });
+                $('#tableBody').html(html);
+            },
+            error: function(err) {
+                alert('Gagal memfilter data!');
+                console.error(err);
+            }
+        });
+    });
+</script>
 @endsection
