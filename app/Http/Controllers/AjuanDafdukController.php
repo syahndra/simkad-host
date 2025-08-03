@@ -226,7 +226,9 @@ class AjuanDafdukController extends Controller
         if ($request->rw) {
             $query->where('rw', $request->rw);
         }
-
+        if ($request->data === 'terhapus') {
+            $query->onlyTrashed();
+        }
         $result = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
@@ -245,5 +247,13 @@ class AjuanDafdukController extends Controller
             ->first();
         $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan', 'respon', 'finalDOkumen')->findOrFail($id);
         return view('ajuanDafduk.show', compact('ajuan', 'respon', 'finalDokumen'));
+    }
+
+    public function restore($id)
+    {
+        $ajuan = AjuanDafduk::withTrashed()->findOrFail($id);
+        $ajuan->restore();
+
+        return redirect()->route('ajuanDafduk.index')->with('success', 'Ajuan berhasil dipulihkan.');
     }
 }

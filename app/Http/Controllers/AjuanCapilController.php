@@ -189,7 +189,9 @@ class AjuanCapilController extends Controller
         if ($request->rw) {
             $query->where('rw', $request->rw);
         }
-
+        if ($request->data === 'terhapus') {
+            $query->onlyTrashed();
+        }
         $result = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
@@ -208,5 +210,12 @@ class AjuanCapilController extends Controller
             ->first();
         $ajuan = AjuanCapil::with('operatorDesa.desa.kecamatan', 'layanan', 'respon', 'finalDOkumen')->findOrFail($id);
         return view('ajuanCapil.show', compact('ajuan', 'respon', 'finalDokumen'));
+    }
+    public function restore($id)
+    {
+        $ajuan = AjuanCapil::withTrashed()->findOrFail($id);
+        $ajuan->restore();
+
+        return redirect()->route('ajuanCapil.index')->with('success', 'Ajuan berhasil dipulihkan.');
     }
 }

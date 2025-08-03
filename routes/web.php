@@ -57,12 +57,14 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['checkRole:operatorDesa,operatorKecamatan,opDinDafduk,admin'])->group(function () {
         Route::resource('ajuanDafduk', AjuanDafdukController::class);
         Route::get('/ajuanDafduk/{id}', [AjuanDafdukController::class, 'show'])->name('ajuanDafduk.show');
+        Route::get('/ajuanDafduk/restore/{id}', [AjuanDafdukController::class, 'restore'])->name('ajuanDafduk.restore');
     });
 
     Route::middleware(['checkRole:operatorDesa,opDinCapil,admin'])->group(function () {
         Route::resource('ajuanCapil', AjuanCapilController::class);
         // Route::get('/ajuanCapil/delete/{id}', [AjuanCapilController::class, 'destroy'])->name('ajuanCapil.destroy');
         Route::get('/ajuanCapil/{id}', [AjuanCapilController::class, 'show'])->name('ajuanCapil.show');
+        Route::get('/ajuanCapil/restore/{id}', [AjuanCapilController::class, 'restore'])->name('ajuanCapil.restore');
     });
 
     Route::middleware(['checkRole:operatorDesa,opDinCapil,opDinDafduk,operatorKecamatan'])->group(function () {
@@ -76,7 +78,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/respon/{id}/revisi', [ResponController::class, 'revisi'])->name('ajuan.revisi');
         Route::put('/respon/{id}/revisi', [ResponController::class, 'revisiProses'])->name('ajuan.revisi');
     });
-    
+
     Route::middleware(['checkRole:operatorDesa'])->group(function () {
         Route::get('/finalDok/{jenis}/{id}/create', [FinalDokumenController::class, 'create'])->name('finalDokumen.create');
         Route::post('/finalDok', [FinalDokumenController::class, 'store'])->name('finalDokumen.store');

@@ -68,6 +68,12 @@
                         <hr>
                         <!-- Filter -->
                         <form id="filterForm" class="row g-2 align-items-end mb-3">
+                            <div class="col-md-3">
+                                <select class="form-control" name="data">
+                                    <option value="aktif" selected>Data Aktif</option>
+                                    <option value="terhapus">Data Terhapus</option>
+                                </select>
+                            </div>
                             <div class="col-md-2">
                                 <input type="date" class="form-control" name="startDate">
                             </div>
@@ -194,6 +200,13 @@
                                                         <i class="lni lni-eye"></i>
                                                     </a>
                                                 </button>
+                                                @if($a->deleted_at)
+                                                <button>
+                                                    <a href="{{ route('ajuanCapil.restore', $a->idCapil) }}" class="text-warning" title="Pulihkan">
+                                                        <i class="lni lni-reload"></i>
+                                                    </a>
+                                                </button>
+                                                @endif
                                                 @isset($a->finalDokumen->filePath)
                                                 <button>
                                                     <a href="{{ asset( $a->finalDokumen->filePath) }}"
@@ -328,22 +341,27 @@
         let html = '';
 
         html += `<div class="action">`;
-        html +=
-            `<button><a href="/ajuanCapil/${a.idCapil}" class="text-success" title="Detail"><i class="lni lni-eye"></i></a></button>`
-        if (a.final_dokumen && a.final_dokumen.filePath) {
-            html +=
-                `<button><a href="${a.final_dokumen.filePath}" target="_blank" class="text-primary" title="Lihat Final Dokumen"><i class="lni lni-archive"></i></a></button>`;
-        }
-
-        if (a.linkBerkas && typeof a.linkBerkas === 'string' && a.linkBerkas.trim() !== '') {
-            html +=
-                `<button><a href="${a.linkBerkas}" target="_blank" class="text-muted" title="Lihat Berkas di GDrive"><i class="lni lni-telegram-original"></i></a></button>`;
-        }
-        if (roleUser === 'operatorDesa') {
-            if (status === 'dalam antrian') {
+        if (a.deleted_at) {
+            if (roleUser === 'operatorDesa') {
                 html +=
-                    `<a href="/ajuanCapil/${a.idCapil}/edit" class="text-warning" title="Edit Ajuan"><i class="lni lni-pencil"></i></a>`;
-                html += `<form action="/ajuanCapil/${a.idCapil}" method="POST" style="display:inline;">
+                    `<button><a href="/ajuanCapil/restore/${a.idCapil}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
+            }
+        } else {
+            html +=
+                `<button><a href="/ajuanCapil/${a.idCapil}" class="text-success" title="Detail"><i class="lni lni-eye"></i></a></button>`;
+            if (a.final_dokumen && a.final_dokumen.filePath) {
+                html +=
+                    `<button><a href="${a.final_dokumen.filePath}" target="_blank" class="text-primary" title="Lihat Final Dokumen"><i class="lni lni-archive"></i></a></button>`;
+            }
+            if (a.linkBerkas && typeof a.linkBerkas === 'string' && a.linkBerkas.trim() !== '') {
+                html +=
+                    `<button><a href="${a.linkBerkas}" target="_blank" class="text-muted" title="Lihat Berkas di GDrive"><i class="lni lni-telegram-original"></i></a></button>`;
+            }
+            if (roleUser === 'operatorDesa') {
+                if (status === 'dalam antrian') {
+                    html +=
+                        `<a href="/ajuanCapil/${a.idCapil}/edit" class="text-warning" title="Edit Ajuan"><i class="lni lni-pencil"></i></a>`;
+                    html += `<form action="/ajuanCapil/${a.idCapil}" method="POST" style="display:inline;">
                             <input type="hidden" name="_token" value="${csrfToken}">
                             <input type="hidden" name="_method" value="DELETE">
                             <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
@@ -351,29 +369,30 @@
                             </button>
                          </form>`;
 
-            }
-            if (status === 'ditolak') {
-                html +=
-                    `<button><a href="/respon/capil/${a.idCapil}/edit" class="text-success" title="Ajukan Ulang"><i class="lni lni-reload"></i></a><button>`;
-            }
-            if (['sudah diproses', 'selesai'].includes(status)) {
-                if (a.final_dokumen && a.final_dokumen.filePath) {
+                }
+                if (status === 'ditolak') {
                     html +=
-                        `<button><a href="/finalDok/capil/${a.idCapil}/edit" class="text-warning" title="Ubah Dokumen"><i class="lni lni-pencil-alt"></i></a></button>`;
+                        `<button><a href="/respon/capil/${a.idCapil}/edit" class="text-success" title="Ajukan Ulang"><i class="lni lni-reload"></i></a><button>`;
+                }
+                if (['sudah diproses', 'selesai'].includes(status)) {
+                    if (a.final_dokumen && a.final_dokumen.filePath) {
+                        html +=
+                            `<button><a href="/finalDok/capil/${a.idCapil}/edit" class="text-warning" title="Ubah Dokumen"><i class="lni lni-pencil-alt"></i></a></button>`;
+                    } else {
+                        html +=
+                            `<button><a href="/finalDok/capil/${a.idCapil}/create" class="text-primary" title="Upload Dokumen"><i class="lni lni-cloud-upload"></i></a><button>`;
+                    }
+                }
+                html +=
+                    `<a href="/cetak-token/capil/${a.idCapil}" class="text-secondary" title="Bukti Pengajuan" target="_blank"><i class="lni lni-cog"></i></a>`;
+            } else if (['opDinCapil'].includes(roleUser)) {
+                if (status === 'dalam antrian') {
+                    html +=
+                        `<a href="/respon/capil/${a.idCapil}/create" class="text-primary" title="Beri Respon"><i class="lni lni-reply"></i></a>`;
                 } else {
                     html +=
-                        `<button><a href="/finalDok/capil/${a.idCapil}/create" class="text-primary" title="Upload Dokumen"><i class="lni lni-cloud-upload"></i></a><button>`;
+                        `<a href="/respon/capil/${a.idCapil}/edit" class="text-warning" title="Ubah Respon"><i class="lni lni-pencil-alt"></i></a>`;
                 }
-            }
-            html +=
-                `<a href="/cetak-token/capil/${a.idCapil}" class="text-secondary" title="Bukti Pengajuan" target="_blank"><i class="lni lni-cog"></i></a>`;
-        } else if (['opDinCapil'].includes(roleUser)) {
-            if (status === 'dalam antrian') {
-                html +=
-                    `<a href="/respon/capil/${a.idCapil}/create" class="text-primary" title="Beri Respon"><i class="lni lni-reply"></i></a>`;
-            } else {
-                html +=
-                    `<a href="/respon/capil/${a.idCapil}/edit" class="text-warning" title="Ubah Respon"><i class="lni lni-pencil-alt"></i></a>`;
             }
         }
         html += `</div>`;
