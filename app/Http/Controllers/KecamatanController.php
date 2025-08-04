@@ -61,4 +61,30 @@ class KecamatanController extends Controller
             return redirect()->route('kecamatan.index')->with('success', 'Data kecamatan berhasil dihapus.');
         }
     }
+
+    public function filter(Request $request)
+    {
+        if ($request->data === 'terhapus') {
+            $query = Kecamatan::onlyTrashed();
+        } else {
+            $query = Kecamatan::withoutTrashed();
+        }
+
+        $result = $query->get();
+
+        return response()->json([
+            'data' => $result
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $kecamatan = Kecamatan::withTrashed()->where('idKec', $id)->first();
+
+        if ($kecamatan) {
+            $kecamatan->restore();
+        }
+
+        return redirect()->route('kecamatan.index')->with('success', 'Data kecamatan berhasil dipulihkan.');
+    }
 }

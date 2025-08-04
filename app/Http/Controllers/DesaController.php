@@ -66,4 +66,30 @@ class DesaController extends Controller
             return redirect()->route('desa.index')->with('success', 'Data desa berhasil dihapus.');
         }
     }
+
+    public function filter(Request $request)
+    {
+        $query = Desa::with('kecamatan');
+
+        if ($request->data === 'terhapus') {
+            $query->onlyTrashed();
+        }
+
+        $result = $query->get();
+
+        return response()->json([
+            'data' => $result
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $desa = Desa::withTrashed()->where('idDesa', $id)->first();
+
+        if ($desa) {
+            $desa->restore();
+        }
+
+        return redirect()->route('desa.index')->with('success', 'Data desa berhasil dipulihkan.');
+    }
 }

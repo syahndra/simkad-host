@@ -14,6 +14,7 @@ use App\Http\Controllers\ResponController;
 use App\Http\Controllers\FinalDokumenController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\DashboardController;
+use App\Models\Kecamatan;
 use App\Models\OperatorDesa;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\File;
@@ -43,18 +44,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/operatorDesa/filter', [OperatorDesaController::class, 'filter'])->name('operatorDesa.filter');
     Route::get('/operatorKec/filter', [OperatorKecController::class, 'filter'])->name('operatorKec.filter');
     Route::get('/operatorDinas/filter', [OperatorDinasController::class, 'filter'])->name('operatorDinas.filter');
+    Route::get('/desa/filter', [DesaController::class, 'filter'])->name('desa.filter');
+    Route::get('/kecamatan/filter', [KecamatanController::class, 'filter'])->name('kecamatan.filter');
+    Route::get('/layanan/filter', [LayananController::class, 'filter'])->name('layanan.filter');
 
     Route::middleware(['checkRole:admin'])->group(function () {
         Route::resource('kecamatan', KecamatanController::class);
         Route::resource('desa', DesaController::class);
         Route::resource('layanan', LayananController::class);
-    });
-
-    Route::middleware(['checkRole:admin'])->group(function () {
         Route::resource('operatorDinas', OperatorDinasController::class);
         Route::resource('operatorKec', OperatorKecController::class);
         Route::get('/operatorKec/restore/{id}', [OperatorKecController::class, 'restore'])->name('operatorKec.restore');
         Route::get('/operatorDinas/restore/{id}', [OperatorDinasController::class, 'restore'])->name('operatorDinas.restore');
+        Route::get('/desa/restore/{id}', [DesaController::class, 'restore'])->name('desa.restore');
+        Route::get('/kecamatan/restore/{id}', [KecamatanController::class, 'restore'])->name('kecamatan.restore');
+        Route::get('/layanan/restore/{id}', [LayananController::class, 'restore'])->name('layanan.restore');
+
     });
     Route::middleware(['checkRole:operatorKecamatan'])->group(function () {
         Route::resource('operatorDesa', OperatorDesaController::class);

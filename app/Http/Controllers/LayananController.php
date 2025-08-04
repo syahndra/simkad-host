@@ -66,4 +66,30 @@ class LayananController extends Controller
             return redirect()->route('layanan.index')->with('success', 'Data layanan berhasil dihapus.');
         }
     }
+
+    public function filter(Request $request)
+    {
+        if ($request->data === 'terhapus') {
+            $query = Layanan::onlyTrashed();
+        } else {
+            $query = Layanan::withoutTrashed();
+        }
+
+        $result = $query->get();
+
+        return response()->json([
+            'data' => $result
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $layanan = Layanan::withTrashed()->where('idLayanan', $id)->first();
+
+        if ($layanan) {
+            $layanan->restore();
+        }
+
+        return redirect()->route('layanan.index')->with('success', 'Data layanan berhasil dipulihkan.');
+    }
 }
