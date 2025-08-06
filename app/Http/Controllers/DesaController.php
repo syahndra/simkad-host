@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Desa;
 use App\Models\Kecamatan;
 use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 
 class DesaController extends Controller
 {
     public function index()
     {
-        $desa = Desa::with('kecamatan')->get();
-        return view('desa.index', compact('desa'));
+        return view('desa.index');
     }
 
     public function create()
@@ -75,11 +75,28 @@ class DesaController extends Controller
             $query->onlyTrashed();
         }
 
-        $result = $query->get();
-
-        return response()->json([
-            'data' => $result
-        ]);
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('nama_kecamatan', function ($item) {
+                return $item->kecamatan ? $item->kecamatan->namaKec : '-';
+            })
+            ->addColumn('aksi', function ($item) {
+                if ($item->deleted_at) {
+                    return '<a href="/desa/restore/' . $item->idDesa . '" class="text-success"><i class="lni lni-reload"></i></a>';
+                } else {
+                    return '
+                    <a href="/desa/' . $item->idDesa . '/edit" class="text-warning"><i class="lni lni-pencil"></i></a>
+                    <form action="/desa/' . $item->idDesa . '" method="POST" style="display:inline;">
+                        ' . csrf_field() . method_field('DELETE') . '
+                        <button type="submit" onclick="return confirm(\'Yakin hapus?\')" 
+                            class="border-0 bg-transparent text-danger p-0" title="Hapus">
+                            <i class="lni lni-trash-can"></i>
+                        </button>
+                    </form>';
+                }
+            })
+            ->rawColumns(['aksi'])
+            ->make(true);
     }
 
     public function restore($id)

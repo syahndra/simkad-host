@@ -476,3 +476,10 @@
     });
 </script>
 @endsection
+@push('scripts')
+<script>
+    const dataTable = new simpleDatatables.DataTable("#table", {
+        searchable: true,
+    });
+</script>
+@endpush

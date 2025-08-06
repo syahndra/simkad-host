@@ -59,7 +59,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/desa/restore/{id}', [DesaController::class, 'restore'])->name('desa.restore');
         Route::get('/kecamatan/restore/{id}', [KecamatanController::class, 'restore'])->name('kecamatan.restore');
         Route::get('/layanan/restore/{id}', [LayananController::class, 'restore'])->name('layanan.restore');
-
     });
     Route::middleware(['checkRole:operatorKecamatan'])->group(function () {
         Route::resource('operatorDesa', OperatorDesaController::class);

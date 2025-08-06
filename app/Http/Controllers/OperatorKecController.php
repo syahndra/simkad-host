@@ -8,13 +8,13 @@ use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Yajra\DataTables\DataTables;
 
 class OperatorKecController extends Controller
 {
     public function index()
     {
-        $operatorKec = OperatorKec::with(['user', 'kecamatan'])->get();
-        return view('operatorKec.index', compact('operatorKec'));
+        return view('operatorKec.index');
     }
 
     public function create()
@@ -120,11 +120,45 @@ class OperatorKecController extends Controller
             $query->onlyTrashed();
         }
 
-        $result = $query->get();
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('nama', fn($op) => $op->user->nama ?? '-')
+            ->addColumn('email', fn($op) => $op->user->email ?? '-')
+            ->addColumn('verifikasi', function ($op) {
+                return $op->user && $op->user->email_verified_at
+                    ? '<span class="badge bg-success">Terverifikasi</span>'
+                    : '<span class="badge bg-danger">Belum</span>';
+            })
+            ->addColumn('kecamatan', fn($op) => $op->kecamatan->namaKec ?? '-')
+            ->addColumn('aksi', function ($op) {
+                $html = '<div class="action">';
+                if ($op->deleted_at) {
+                    $html .= '<a href="/operatorKec/restore/' . $op->idOpkec . '" class="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a>';
+                } else {
+                    $html .= '
+                    <a href="/operatorKec/' . $op->idOpkec . '/edit" class="text-warning" title="Edit"><i class="lni lni-pencil"></i></a>
+                    <form action="/operatorKec/' . $op->idOpkec . '" method="POST" style="display:inline;">
+                        ' . csrf_field() . method_field('DELETE') . '
+                        <button type="submit" onclick="return confirm(\'Yakin hapus?\')" class="border-0 bg-transparent text-danger p-0" title="Hapus">
+                            <i class="lni lni-trash-can"></i>
+                        </button>
+                    </form>';
 
-        return response()->json([
-            'data' => $result
-        ]);
+                    if (!$op->user || !$op->user->email_verified_at) {
+                        $html .= '
+                        <form action="/resend-verification/' . $op->user->idUser . '" method="POST" style="display:inline;">
+                            ' . csrf_field() . '
+                            <button type="submit" class="border-0 bg-transparent text-info p-0" title="Kirim Ulang Verifikasi">
+                                <i class="lni lni-envelope"></i>
+                            </button>
+                        </form>';
+                    }
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->rawColumns(['verifikasi', 'aksi'])
+            ->make(true);
     }
 
     public function restore($id)

@@ -64,7 +64,7 @@
                         </form>
 
                         <div class="table-responsive">
-                            <table id="table" class="table">
+                            <table id="table" class="table  w-100">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -74,29 +74,7 @@
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tableBody">
-                                    @foreach($layanan as $item)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $item->namaLayanan }}</td>
-                                        <td>{{ ucfirst($item->jenis) }}</td>
-                                        <td>{{ str_replace('_', ' ', ucfirst($item->aksesVer)) }}</td>
-                                        <td>
-                                            <div class="action">
-                                                <a href="{{ route('layanan.edit', $item->idLayanan) }}" class="text-warning">
-                                                    <i class="lni lni lni-pencil"></i>
-                                                </a>
-                                                <form action="{{ route('layanan.destroy', $item->idLayanan) }}" method="POST"
-                                                    style="display:inline;">
-                                                    @csrf @method('DELETE')
-                                                    <button onclick="return confirm('Yakin hapus?')"
-                                                        class="text-danger"><i class="lni lni-trash-can"></i></button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
+                                <tbody id="tableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -113,62 +91,50 @@
 <!-- ========== table components end ========== -->
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Tambahkan di dalam <head> atau sebelum penutup </body> -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
     const csrfToken = '{{ csrf_token() }}';
-
-    function renderActions(a) {
-        let html = '';
-
-        html += `<div class="action">`;
-        if (a.deleted_at) {
-            html +=
-                `<button><a href="/layanan/restore/${a.idLayanan}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
-        } else {
-            html += `<a href="/layanan/${a.idLayanan}/edit" class="text-warning" title="Edit Ajuan">
-                <i class="lni lni-pencil"></i>
-            </a>`;
-
-            html += `<form action="/layanan/${a.idLayanan}" method="POST" style="display:inline;">
-                <input type="hidden" name="_token" value="${csrfToken}">
-                <input type="hidden" name="_method" value="DELETE">
-                <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
-                    <i class="lni lni-trash-can"></i>
-                </button>
-            </form>`;
-        }
-
-        html += `</div>`;
-
-        return html;
-    }
+    let table = $('#table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('layanan.filter') }}",
+            data: function(d) {
+                d.data = $('select[name="data"]').val();
+            }
+        },
+        columns: [{
+                data: 'DT_RowIndex',
+                name: 'DT_RowIndex',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'namaLayanan',
+                name: 'namaLayanan'
+            },
+            {
+                data: 'jenis',
+                name: 'jenis'
+            },
+            {
+                data: 'aksesVer',
+                name: 'aksesVer'
+            },
+            {
+                data: 'aksi',
+                name: 'aksi',
+                orderable: false,
+                searchable: false
+            }
+        ]
+    });
 
     $('#filterForm').on('submit', function(e) {
         e.preventDefault();
-        const formData = $(this).serialize();
-        console.log('Form data:', formData);
-        $.ajax({
-            url: "{{ route('layanan.filter') }}",
-            type: 'GET',
-            data: formData,
-            success: function(res) {
-                let html = '';
-                res.data.forEach((a, i) => {
-                    html += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${a.namaLayanan}</td>
-                        <td>${a.jenis}</td>
-                        <td>${a.aksesVer}</td>
-                        <td>${renderActions(a)}</td>
-                    </tr>`;
-                });
-                $('#tableBody').html(html);
-            },
-            error: function(err) {
-                alert('Gagal memfilter data!');
-                console.error(err);
-            }
-        });
+        table.ajax.reload();
     });
 </script>
 @endsection

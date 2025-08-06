@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Layanan;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class LayananController extends Controller
 {
     public function index()
     {
-        $layanan = Layanan::all();
-        return view('layanan.index', compact('layanan'));
+        return view('layanan.index');
     }
 
     public function create()
@@ -69,17 +69,31 @@ class LayananController extends Controller
 
     public function filter(Request $request)
     {
+        $query = Layanan::query();
+
         if ($request->data === 'terhapus') {
-            $query = Layanan::onlyTrashed();
-        } else {
-            $query = Layanan::withoutTrashed();
+            $query->onlyTrashed();
         }
 
-        $result = $query->get();
-
-        return response()->json([
-            'data' => $result
-        ]);
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('aksi', function ($item) {
+                if ($item->deleted_at) {
+                    return '<a href="/layanan/restore/' . $item->idLayanan . '" class="text-success"><i class="lni lni-reload"></i></a>';
+                } else {
+                    return '
+                        <a href="/layanan/' . $item->idLayanan . '/edit" class="text-warning"><i class="lni lni-pencil"></i></a>
+                        <form action="/layanan/' . $item->idLayanan . '" method="POST" style="display:inline;">
+                            ' . csrf_field() . method_field('DELETE') . '
+                            <button type="submit" onclick="return confirm(\'Yakin hapus?\')" 
+                                class="border-0 bg-transparent text-danger p-0" title="Hapus">
+                                <i class="lni lni-trash-can"></i>
+                            </button>
+                        </form>';
+                }
+            })
+            ->rawColumns(['aksi'])
+            ->make(true);
     }
 
     public function restore($id)

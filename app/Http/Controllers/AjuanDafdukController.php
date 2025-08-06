@@ -251,8 +251,10 @@ class AjuanDafdukController extends Controller
 
     public function restore($id)
     {
-        $ajuan = AjuanDafduk::withTrashed()->findOrFail($id);
-        $ajuan->restore();
+        $ajuan = AjuanDafduk::withTrashed()->where('idDafduk', $id)->first();
+        if ($ajuan) {
+            $ajuan->restore();
+        }
 
         return redirect()->route('ajuanDafduk.index')->with('success', 'Ajuan berhasil dipulihkan.');
     }

@@ -213,9 +213,10 @@ class AjuanCapilController extends Controller
     }
     public function restore($id)
     {
-        $ajuan = AjuanCapil::withTrashed()->findOrFail($id);
-        $ajuan->restore();
-
+        $ajuan = AjuanCapil::withTrashed()->where('idCapil', $id)->first();
+        if ($ajuan) {
+            $ajuan->restore();
+        }
         return redirect()->route('ajuanCapil.index')->with('success', 'Ajuan berhasil dipulihkan.');
     }
 }

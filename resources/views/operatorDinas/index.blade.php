@@ -70,7 +70,7 @@
                         </form>
 
                         <div class="table-responsive">
-                            <table id="table" class="table">
+                            <table id="table" class="table w-100">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -81,53 +81,7 @@
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tableBody">
-                                    @foreach ($data as $item)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $item->nama }}</td>
-                                        <td>{{ $item->email }}</td>
-                                        <td>
-                                            @if ($item->email_verified_at)
-                                            <span class="badge bg-success">Terverifikasi</span>
-                                            @else
-                                            <span class="badge bg-danger">Belum</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($item->roleUser === 'opDinCapil')
-                                            Capil
-                                            @elseif ($item->roleUser === 'opDinDafduk')
-                                            Dafduk
-                                            @else
-                                            {{ ucfirst($item->roleUser) }}
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="action">
-                                                <a href="{{ route('operatorDinas.edit', $item->idUser) }}"
-                                                    class="text-warning">
-                                                    <i class="lni lni lni-pencil"></i>
-                                                </a>
-                                                <form action="{{ route('operatorDinas.destroy', $item->idUser) }}"
-                                                    method="POST" style="display:inline;">
-                                                    @csrf @method('DELETE')
-                                                    <button onclick="return confirm('Yakin hapus?')"
-                                                        class="text-danger"><i
-                                                            class="lni lni-trash-can"></i></button>
-                                                </form>
-                                                @if (!$item->email_verified_at)
-                                                <form action="{{ route('verification.resend', $item->idUser) }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    <button type="submit" class="text-info" title="Kirim Ulang Verifikasi"><i class="lni lni-envelope"></i></button>
-                                                </form>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                    <!-- end table row -->
-                                </tbody>
+                                <tbody id="tableBody"></tbody>
                             </table>
                             <!-- end table -->
                         </div>
@@ -145,87 +99,56 @@
 <!-- ========== table components end ========== -->
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
     const csrfToken = '{{ csrf_token() }}';
 
-    function renderActions(a) {
-        let html = '';
-
-        html += `<div class="action">`;
-        if (a.deleted_at) {
-            html +=
-                `<button><a href="/operatorDinas/restore/${a.idUser}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
-        } else {
-            html += `<a href="/operatorDinas/${a.idUser}/edit" class="text-warning" title="Edit Ajuan">
-                <i class="lni lni-pencil"></i>
-            </a>`;
-
-            html += `<form action="/operatorDinas/${a.idUser}" method="POST" style="display:inline;">
-                <input type="hidden" name="_token" value="${csrfToken}">
-                <input type="hidden" name="_method" value="DELETE">
-                <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
-                    <i class="lni lni-trash-can"></i>
-                </button>
-            </form>`;
-
-            // Tambahan tombol "Kirim Ulang Verifikasi" jika belum diverifikasi
-            if (!a.email_verified_at) {
-                html += `<form action="/resend-verification/${a.idUser}" method="POST" style="display:inline;">
-                <input type="hidden" name="_token" value="${csrfToken}">
-                <button type="submit" class="text-info" title="Kirim Ulang Verifikasi">
-                    <i class="lni lni-envelope"></i>
-                </button>
-            </form>`;
+    let table = $('#table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('operatorDinas.filter') }}",
+            data: function(d) {
+                d.data = $('select[name="data"]').val();
             }
-        }
-
-        html += `</div>`;
-
-        return html;
-    }
+        },
+        columns: [{
+                data: 'DT_RowIndex',
+                name: 'DT_RowIndex',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'nama',
+                name: 'nama'
+            },
+            {
+                data: 'email',
+                name: 'email'
+            },
+            {
+                data: 'email_verified',
+                name: 'email_verified',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'bidang',
+                name: 'bidang'
+            },
+            {
+                data: 'aksi',
+                name: 'aksi',
+                orderable: false,
+                searchable: false
+            },
+        ]
+    });
 
     $('#filterForm').on('submit', function(e) {
         e.preventDefault();
-        const formData = $(this).serialize();
-        console.log('Form data:', formData);
-        $.ajax({
-            url: "{{ route('operatorDinas.filter') }}",
-            type: 'GET',
-            data: formData,
-            success: function(res) {
-                let html = '';
-                res.data.forEach((a, i) => {
-                    html += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${a.nama}</td>
-                        <td>${a.email}</td>
-                        <td>
-                            ${ a.email_verified_at 
-                            ? '<span class="badge bg-success">Terverifikasi</span>' 
-                            : '<span class="badge bg-danger">Belum</span>'}
-                        </td>
-                        <td>
-                            ${
-                                a.roleUser === 'opDinCapil' 
-                                    ? 'Capil'
-                                    : a.roleUser === 'opDinDafduk'
-                                        ? 'Dafduk'
-                                        : a.roleUser 
-                                            ? a.roleUser.charAt(0).toUpperCase() + a.roleUser.slice(1)
-                                            : '<span class="badge bg-danger">Belum</span>'
-                            }
-                        </td>
-                        <td>${renderActions(a)}</td>
-                    </tr>`;
-                });
-                $('#tableBody').html(html);
-            },
-            error: function(err) {
-                alert('Gagal memfilter data!');
-                console.error(err);
-            }
-        });
+        table.ajax.reload();
     });
 </script>
 @endsection

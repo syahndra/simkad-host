@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OperatorKec;
 use Illuminate\Support\Facades\Mail;
+use Yajra\DataTables\DataTables;
 
 class OperatorDesaController extends Controller
 {
@@ -143,12 +144,47 @@ class OperatorDesaController extends Controller
             });
 
         if ($request->data === 'terhapus') {
-            $query = $query->onlyTrashed();
+            $query->onlyTrashed();
         }
 
-        $data = $query->get();
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('nama', fn($op) => $op->user->nama ?? '-')
+            ->addColumn('email', fn($op) => $op->user->email ?? '-')
+            ->addColumn('verifikasi', fn($op) => $op->user?->email_verified_at
+                ? '<span class="badge bg-success">Terverifikasi</span>'
+                : '<span class="badge bg-danger">Belum</span>')
+            ->addColumn('desa', fn($op) => $op->desa->namaDesa ?? '-')
+            ->addColumn('kecamatan', fn($op) => $op->desa->kecamatan->namaKec ?? '-')
+            ->addColumn('aksi', function ($op) {
+                $html = '<div class="action">';
+                if ($op->deleted_at) {
+                    $html .= '<a href="/operatorDesa/restore/' . $op->idOpdes . '" class="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a>';
+                } else {
+                    $html .= '
+                    <a href="/operatorDesa/' . $op->idOpdes . '/edit" class="text-warning" title="Edit"><i class="lni lni-pencil"></i></a>
+                    <form action="/operatorDesa/' . $op->idOpdes . '" method="POST" style="display:inline;">
+                        ' . csrf_field() . method_field('DELETE') . '
+                        <button onclick="return confirm(\'Yakin hapus?\')" class="border-0 bg-transparent text-danger p-0" title="Hapus">
+                            <i class="lni lni-trash-can"></i>
+                        </button>
+                    </form>';
 
-        return response()->json(['data' => $data]);
+                    if (!$op->user || !$op->user->email_verified_at) {
+                        $html .= '
+                        <form action="/resend-verification/' . $op->user->idUser . '" method="POST" style="display:inline;">
+                            ' . csrf_field() . '
+                            <button type="submit" class="border-0 bg-transparent text-info p-0" title="Kirim Ulang Verifikasi">
+                                <i class="lni lni-envelope"></i>
+                            </button>
+                        </form>';
+                    }
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->rawColumns(['verifikasi', 'aksi'])
+            ->make(true);
     }
 
     public function restore($id)

@@ -63,7 +63,7 @@
                             </div>
                         </form>
                         <div class="table-responsive">
-                            <table id="table" class="table">
+                            <table id="table" class="table w-100">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -75,46 +75,7 @@
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tableBody">
-                                    @foreach ($data as $i => $op)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $op->user->nama }}</td>
-                                        <td>{{ $op->user->email }}</td>
-                                        <td>
-                                            @if ($op->user->email_verified_at)
-                                            <span class="badge bg-success">Terverifikasi</span>
-                                            @else
-                                            <span class="badge bg-danger">Belum</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $op->desa->namaDesa }}</td>
-                                        <td>{{ $op->desa->kecamatan->namaKec }}</td>
-                                        <td>
-                                            <div class="action">
-                                                <a href="{{ route('operatorDesa.edit', $op->idOpdes) }}"
-                                                    class="text-warning">
-                                                    <i class="lni lni lni-pencil"></i>
-                                                </a>
-                                                <form action="{{ route('operatorDesa.destroy', $op->idOpdes) }}"
-                                                    method="POST" style="display:inline;">
-                                                    @csrf @method('DELETE')
-                                                    <button onclick="return confirm('Yakin hapus?')"
-                                                        class="text-danger"><i
-                                                            class="lni lni-trash-can"></i></button>
-                                                </form>
-                                                @if (!$op->user->email_verified_at)
-                                                <form action="{{ route('verification.resend', $op->user->idUser) }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    <button type="submit" class="text-info" title="Kirim Ulang Verifikasi"><i class="lni lni-envelope"></i></button>
-                                                </form>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                    <!-- end table row -->
-                                </tbody>
+                                <tbody id="tableBody"></tbody>
                             </table>
                             <!-- end table -->
                         </div>
@@ -131,77 +92,59 @@
 </section>
 <!-- ========== table components end ========== -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 <script>
-    const csrfToken = '{{ csrf_token() }}';
-
-    function renderActions(a) {
-        let html = '';
-
-        html += `<div class="action">`;
-        if (a.deleted_at) {
-            html +=
-                `<button><a href="/operatorDesa/restore/${a.idOpdes}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
-        } else {
-            html += `<a href="/operatorDesa/${a.idOpdes}/edit" class="text-warning" title="Edit Ajuan">
-                <i class="lni lni-pencil"></i>
-            </a>`;
-
-            html += `<form action="/operatorDesa/${a.idOpdes}" method="POST" style="display:inline;">
-                <input type="hidden" name="_token" value="${csrfToken}">
-                <input type="hidden" name="_method" value="DELETE">
-                <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
-                    <i class="lni lni-trash-can"></i>
-                </button>
-            </form>`;
-
-            if (!a.user?.email_verified_at) {
-                html += `<form action="/resend-verification/${a.user.idUser}" method="POST" style="display:inline;">
-                    <input type="hidden" name="_token" value="${csrfToken}">
-                    <button type="submit" class="text-info" title="Kirim Ulang Verifikasi">
-                        <i class="lni lni-envelope"></i>
-                    </button>
-                </form>`;
+    let table = $('#table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('operatorDesa.filter') }}",
+            data: function(d) {
+                d.data = $('select[name="data"]').val();
             }
-        }
-
-        html += `</div>`;
-
-        return html;
-    }
+        },
+        columns: [{
+                data: 'DT_RowIndex',
+                name: 'DT_RowIndex',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'nama',
+                name: 'user.nama'
+            },
+            {
+                data: 'email',
+                name: 'user.email'
+            },
+            {
+                data: 'verifikasi',
+                name: 'user.email_verified_at',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'desa',
+                name: 'desa.namaDesa'
+            },
+            {
+                data: 'kecamatan',
+                name: 'desa.kecamatan.namaKec'
+            },
+            {
+                data: 'aksi',
+                name: 'aksi',
+                orderable: false,
+                searchable: false
+            },
+        ]
+    });
 
     $('#filterForm').on('submit', function(e) {
         e.preventDefault();
-        const formData = $(this).serialize();
-        // console.log('Form data:', formData);
-        $.ajax({
-            url: "{{ route('operatorDesa.filter') }}",
-            type: 'GET',
-            data: formData,
-            success: function(res) {
-                let html = '';
-                res.data.forEach((a, i) => {
-                    html += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${a.user.nama}</td>
-                        <td>${a.user.email}</td>
-                        <td>
-                            ${a.user.email_verified_at 
-                                ? '<span class="badge bg-success">Terverifikasi</span>' 
-                                : '<span class="badge bg-danger">Belum</span>'}
-                        </td>
-                        <td>${a.desa.namaDesa}</td>
-                        <td>${a.desa.kecamatan.namaKec}</td>
-                        <td>${renderActions(a)}</td>
-                    </tr>`;
-                });
-                $('#tableBody').html(html);
-            },
-            error: function(err) {
-                alert('Gagal memfilter data!');
-                console.error(err);
-            }
-        });
+        table.ajax.reload();
     });
 </script>
 @endsection
