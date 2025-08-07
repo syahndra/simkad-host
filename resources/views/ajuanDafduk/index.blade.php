@@ -99,7 +99,34 @@
                                     <option value="selesai">Selesai</option>
                                 </select>
                             </div>
-                            @if (auth()->user()->roleUser !== 'operatorDesa')
+                            @if (auth()->user()->roleUser == 'operatorKecamatan')
+                            <select name="kecamatan" id="filterKecamatan" style="display: none;">
+                                <option value="{{ $idKec }}" selected>-- Pilih Kecamatan --</option>
+                            </select>
+                            <div class="col-md-3">
+                                <select class="form-control" name="desa" id="filterDesa">
+                                    <option value="" disabled selected>-- Pilih Desa --</option>
+                                    <option value="">Semua</option>
+                                    {{-- Nantinya desa akan diubah via JavaScript --}}
+                                </select>
+                            </div>
+                            @elseif (auth()->user()->roleUser == 'operatorDesa')
+                            <select name="kecamatan" hidden>
+                                <option value="" disabled selected>-- Pilih Kecamatan --</option>
+                            </select>
+                            <select name="desa" hidden>
+                                <option value="" selected>-- Pilih Desa --</option>
+                            </select>
+                            <input type="hidden" name="role" value="operatorDesa">
+                            <div class="col-md-2">
+                                <input type="text" name="rw" class="form-control" placeholder="RW"
+                                    maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" name="rt" class="form-control" placeholder="RT"
+                                    maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </div>
+                            @else
                             <input type="hidden" name="role" value="verif">
                             <input type="hidden" name="rw" value="">
                             <input type="hidden" name="rt" value="">
@@ -122,22 +149,6 @@
                                     <option value="">Semua</option>
                                     {{-- Nantinya desa akan diubah via JavaScript --}}
                                 </select>
-                            </div>
-                            @else
-                            <select name="kecamatan" hidden>
-                                <option value="" disabled selected>-- Pilih Kecamatan --</option>
-                            </select>
-                            <select name="desa" hidden>
-                                <option value="" selected>-- Pilih Desa --</option>
-                            </select>
-                            <input type="hidden" name="role" value="operatorDesa">
-                            <div class="col-md-2">
-                                <input type="text" name="rw" class="form-control" placeholder="RW"
-                                    maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="text" name="rt" class="form-control" placeholder="RT"
-                                    maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                             </div>
                             @endif
                             <div class="col-md-2">
@@ -293,8 +304,7 @@
     });
 </script>
 <script>
-    $('#filterKecamatan').on('change', function() {
-        const kecamatanId = $(this).val();
+    function loadDesaByKecamatan(kecamatanId) {
         if (!kecamatanId) {
             $('#filterDesa').html('<option disabled selected>-- Pilih Desa --</option><option value="">Semua</option>');
             return;
@@ -303,7 +313,7 @@
         $.ajax({
             url: '/get-desa-by-kecamatan/' + kecamatanId,
             type: 'GET',
-            success: function(res) {
+            success: function (res) {
                 let desaOptions = '<option disabled selected>-- Pilih Desa --</option><option value="">Semua</option>';
                 res.forEach(d => {
                     desaOptions += `<option value="${d.idDesa}">${d.namaDesa}</option>`;
@@ -311,6 +321,20 @@
                 $('#filterDesa').html(desaOptions);
             }
         });
+    }
+
+    // Event saat user mengganti kecamatan (jika dropdownnya bisa terlihat)
+    $('#filterKecamatan').on('change', function () {
+        const kecamatanId = $(this).val();
+        loadDesaByKecamatan(kecamatanId);
+    });
+
+    // Trigger otomatis saat halaman dimuat (jika kecamatan sudah ada)
+    $(document).ready(function () {
+        const kecamatanId = $('#filterKecamatan').val();
+        if (kecamatanId) {
+            loadDesaByKecamatan(kecamatanId);
+        }
     });
 </script>
 
