@@ -81,10 +81,11 @@ class DesaController extends Controller
                 return $item->kecamatan ? $item->kecamatan->namaKec : '-';
             })
             ->addColumn('aksi', function ($item) {
+                $html = '<div class="action" style="display: flex; gap: 6px; overflow-x: auto;">';
                 if ($item->deleted_at) {
-                    return '<a href="/desa/restore/' . $item->idDesa . '" class="text-success"><i class="lni lni-reload"></i></a>';
+                    $html .= '<a href="/desa/restore/' . $item->idDesa . '" class="text-success"><i class="lni lni-reload"></i></a>';
                 } else {
-                    return '
+                    $html .= '
                     <a href="/desa/' . $item->idDesa . '/edit" class="text-warning"><i class="lni lni-pencil"></i></a>
                     <form action="/desa/' . $item->idDesa . '" method="POST" style="display:inline;">
                         ' . csrf_field() . method_field('DELETE') . '
@@ -94,6 +95,8 @@ class DesaController extends Controller
                         </button>
                     </form>';
                 }
+                $html .= '</div>';
+                return $html;
             })
             ->rawColumns(['aksi'])
             ->make(true);

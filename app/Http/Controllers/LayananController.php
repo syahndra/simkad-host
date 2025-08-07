@@ -78,10 +78,11 @@ class LayananController extends Controller
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('aksi', function ($item) {
+                $html = '<div class="action" style="display: flex; gap: 6px; overflow-x: auto;">';
                 if ($item->deleted_at) {
-                    return '<a href="/layanan/restore/' . $item->idLayanan . '" class="text-success"><i class="lni lni-reload"></i></a>';
+                    $html .=  '<a href="/layanan/restore/' . $item->idLayanan . '" class="text-success"><i class="lni lni-reload"></i></a>';
                 } else {
-                    return '
+                    $html .=  '
                         <a href="/layanan/' . $item->idLayanan . '/edit" class="text-warning"><i class="lni lni-pencil"></i></a>
                         <form action="/layanan/' . $item->idLayanan . '" method="POST" style="display:inline;">
                             ' . csrf_field() . method_field('DELETE') . '
@@ -91,6 +92,8 @@ class LayananController extends Controller
                             </button>
                         </form>';
                 }
+                $html .= '</div>';
+                return $html;
             })
             ->rawColumns(['aksi'])
             ->make(true);

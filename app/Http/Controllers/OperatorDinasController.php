@@ -124,7 +124,7 @@ class OperatorDinasController extends Controller
                 };
             })
             ->addColumn('aksi', function ($item) {
-                $html = '<div class="action">';
+                $html = '<div class="action" style="display: flex; gap: 6px; overflow-x: auto;">';
                 if ($item->deleted_at) {
                     $html .= '<a href="/operatorDinas/restore/' . $item->idUser . '" class="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a>';
                 } else {

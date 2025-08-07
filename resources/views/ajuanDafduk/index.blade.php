@@ -81,7 +81,7 @@
                             </div>
                             <div class="col-md-3">
                                 <select class="form-control" name="layanan">
-                                    <option disabled selected>-- Pilih Layanan --</option>
+                                    <option value="" disabled selected>-- Pilih Layanan --</option>
                                     <option value="">Semua</option>
                                     @foreach ($listLayanan as $l)
                                     <option value="{{ $l->idLayanan }}">{{ $l->namaLayanan }}</option>
@@ -90,7 +90,7 @@
                             </div>
                             <div class="col-md-3">
                                 <select class="form-control" name="status">
-                                    <option disabled selected>-- Pilih Status --</option>
+                                    <option value="" disabled selected>-- Pilih Status --</option>
                                     <option value="">Semua</option>
                                     <option value="dalam antrian">dalam antrian</option>
                                     <option value="sudah diproses">Sudah Diproses</option>
@@ -100,7 +100,10 @@
                                 </select>
                             </div>
                             @if (auth()->user()->roleUser !== 'operatorDesa')
-                            <div class="col-md-3" @if(auth()->user()->roleUser == 'operatorKecamatan') hidden @endif>
+                            <input type="hidden" name="role" value="verif">
+                            <input type="hidden" name="rw" value="">
+                            <input type="hidden" name="rt" value="">
+                            <div class="col-md-3">
                                 <select class="form-control" name="kecamatan" id="filterKecamatan">
                                     <option value="" disabled selected>-- Pilih Kecamatan --</option>
                                     <option value="">Semua</option>
@@ -121,8 +124,13 @@
                                 </select>
                             </div>
                             @else
-                            <input type="hidden" name="kecamatanInput" value="{{ $namaKecamatan }}">
-                            <input type="hidden" name="desaInput" value="{{ $namaDesa }}">
+                            <select name="kecamatan" hidden>
+                                <option value="" disabled selected>-- Pilih Kecamatan --</option>
+                            </select>
+                            <select name="desa" hidden>
+                                <option value="" selected>-- Pilih Desa --</option>
+                            </select>
+                            <input type="hidden" name="role" value="operatorDesa">
                             <div class="col-md-2">
                                 <input type="text" name="rw" class="form-control" placeholder="RW"
                                     maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
@@ -137,7 +145,7 @@
                             </div>
                         </form>
                         <div class="table-responsive">
-                            <table id="table" class="table" style="font-size: 14px;">
+                            <table id="table" class="table w-100">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -156,134 +164,7 @@
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tableBody">
-                                    @foreach ($ajuan as $a)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($a->created_at)->format('j/n/Y') }}</td>
-                                        <td>{{ $a->layanan->namaLayanan ?? '-' }}</td>
-                                        <td>{{ $a->nama }}</td>
-                                        <td>{{ $a->nik }}</td>
-                                        <td>{{ $a->noKK }}</td>
-                                        @if (auth()->user()->roleUser !== 'operatorDesa')
-                                        <td>{{ $a->operatorDesa->desa->kecamatan->namaKec ?? '-' }}</td>
-                                        <td>{{ $a->operatorDesa->desa->namaDesa ?? '-' }}</td>
-                                        @endif
-                                        <td>{{ $a->rt ?? '-' }}/
-                                            {{ $a->rw ?? '-' }}
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="badge 
-                                                        @if ($a->statAjuan === 'ditolak') bg-danger
-                                                        @elseif ($a->statAjuan === 'sudah diproses') bg-primary
-                                                        @elseif ($a->statAjuan === 'revisi') bg-warning
-                                                        @elseif ($a->statAjuan === 'selesai') bg-success
-                                                        @else bg-secondary @endif
-                                                    ">
-                                                {{ $a->statAjuan }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @if ($a->respon)
-                                            {{ $a->respon->respon }}
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="action">
-                                                <button>
-                                                    <a href="{{ route('ajuanDafduk.show', $a->idDafduk) }}"
-                                                        class="text-success" title="Detail">
-                                                        <i class="lni lni-eye"></i>
-                                                    </a>
-                                                </button>
-                                                @if($a->deleted_at)
-                                                <button>
-                                                    <a href="{{ route('ajuanCapil.restore', $a->idCapil) }}" class="text-warning" title="Pulihkan">
-                                                        <i class="lni lni-reload"></i>
-                                                    </a>
-                                                </button>
-                                                @endif
-                                                @isset($a->finalDokumen->filePath)
-                                                <button>
-                                                    <a href="{{ asset( $a->finalDokumen->filePath) }}"
-                                                        target="_blank" class="text-primary"
-                                                        title="Lihat Final Dokumen">
-                                                        <i class="lni lni-archive"></i>
-                                                    </a>
-                                                </button>
-                                                @endisset
-                                                @if (!empty($a->linkBerkas))
-                                                <button>
-                                                    <a href="{{ $a->linkBerkas }}" target="_blank"
-                                                        class="text-muted" title="Lihat Berkas di GDrive">
-                                                        <i class="lni lni-telegram-original"></i>
-                                                    </a>
-                                                </button>
-                                                @endif
-                                                @if (Auth::user()->roleUser === 'operatorDesa')
-                                                @if ($a->statAjuan === 'dalam antrian')
-                                                <a href="{{ route('ajuanDafduk.edit', $a->idDafduk) }}"
-                                                    class="text-warning" title="Edit Ajuan">
-                                                    <i class="lni lni lni-pencil"></i>
-                                                </a>
-                                                <form
-                                                    action="{{ route('ajuanDafduk.destroy', $a->idDafduk) }}"
-                                                    method="POST">
-                                                    @csrf @method('DELETE')
-                                                    <button onclick="return confirm('Yakin hapus?')"
-                                                        class="text-danger" title="Hapus Ajuan"><i
-                                                            class="lni lni-trash-can"></i></button>
-                                                </form>
-                                                @endif
-                                                @if ($a->statAjuan === 'ditolak')
-                                                <button>
-                                                    <a href="{{ route('respon.edit', ['jenis' => 'dafduk', 'id' => $a->idDafduk]) }}"
-                                                        class="text-warning" title="Ajukan Ulang">
-                                                        <i class="lni lni-reload"></i>
-                                                    </a>
-                                                </button>
-                                                @endif
-                                                @if (in_array($a->statAjuan, ['sudah diproses', 'selesai']))
-                                                @isset($a->finalDokumen)
-                                                <button>
-                                                    <a href="{{ route('finalDokumen.edit', ['jenis' => 'dafduk', 'id' => $a->idDafduk]) }}"
-                                                        class="text-warning" title="Ubah Dokumen">
-                                                        <i class="lni lni-pencil-alt"></i>
-                                                    </a>
-                                                </button>
-                                                @else
-                                                <button>
-                                                    <a href="{{ route('finalDokumen.create', ['jenis' => 'dafduk', 'id' => $a->idDafduk]) }}"
-                                                        class="text-primary" title="Upload Dokumen">
-                                                        <i class="lni lni lni-cloud-upload"></i>
-                                                    </a>
-                                                </button>
-                                                @endisset
-                                                @endif
-                                                <a href="{{ route('ajuan.cetak', ['jenis' => 'dafduk', 'id' => $a->idDafduk]) }}"
-                                                    class="text-secondary" title="Bukti Pengajuan"
-                                                    target="_blank">
-                                                    <i class="lni lni-bookmark"></i>
-                                                </a>
-                                                @elseif (in_array(Auth::user()->roleUser, ['opDinDafduk', 'operatorKecamatan']))
-                                                @if ($a->statAjuan === 'dalam antrian')
-                                                <a href="{{ route('respon.create', ['jenis' => 'dafduk', 'id' => $a->idDafduk]) }}"
-                                                    class="text-primary" title="Beri Respon">
-                                                    <i class="lni lni-reply"></i>
-                                                </a>
-                                                @else
-                                                <a href="{{ route('respon.edit', ['jenis' => 'dafduk', 'id' => $a->idDafduk]) }}"
-                                                    class="text-warning" title="Ubah Respon">
-                                                    <i class="lni lni-pencil-alt"></i>
-                                                </a>
-                                                @endif
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
+                                <tbody id="tableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -295,148 +176,123 @@
 </section>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-    const csrfToken = '{{ csrf_token() }}';
-    const roleUser = '{{ Auth::user()->roleUser }}';
+    let role = $('input[name="role"]').val(); // ambil nilai role lebih awal
 
-    function getBadgeClass(status) {
-        switch (status) {
-            case 'ditolak':
-                return 'bg-danger';
-            case 'sudah diproses':
-                return 'bg-primary';
-            case 'revisi':
-                return 'bg-warning';
-            case 'selesai':
-                return 'bg-success';
-            default:
-                return 'bg-secondary';
+    let columns = [{
+            data: 'DT_RowIndex',
+            name: 'DT_RowIndex',
+            orderable: false,
+            searchable: false
+        },
+        {
+            data: 'tanggal',
+            name: 'ajuan.tanggal',
+            orderable: false,
+            searchable: false
+        },
+        {
+            data: 'layanan',
+            name: 'layanan.namaLayanan',
+            orderable: true,
+            searchable: true
+        },
+        {
+            data: 'nama',
+            name: 'ajuandafduk.nama',
+            orderable: true,
+            searchable: true
+        },
+        {
+            data: 'nik',
+            name: 'ajuandafduk.nik',
+            orderable: true,
+            searchable: true
+
+        },
+        {
+            data: 'noKK',
+            name: 'ajuandafduk.noKK',
+            orderable: true,
+            searchable: true
         }
+    ];
+
+    if (role !== 'operatorDesa') {
+        columns.push({
+            data: 'kecamatan',
+            name: 'operatorDesa.desa.kecamatan.namaKec',
+            orderable: true,
+            searchable: true
+        }, {
+            data: 'desa',
+            name: 'operatorDesa.desa.namaDesa',
+            orderable: true,
+            searchable: true
+        });
     }
 
-    function renderNote(a) {
-        if (a.respon) {
-            return `${a.respon.respon ?? ''}`;
+    columns = columns.concat([{
+            data: null,
+            name: 'rt_rw',
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row) {
+                let rt = row.rt ?? '-';
+                let rw = row.rw ?? '-';
+                return `${rt}/${rw}`;
+            }
+        },
+        {
+            data: 'statAjuan',
+            name: 'ajuandafduk.statAjuan',
+            orderable: true,
+            searchable: true
+        },
+        {
+            data: 'respon',
+            name: 'respon',
+            orderable: true,
+            searchable: true
+        },
+        {
+            data: 'action',
+            name: 'action',
+            orderable: false,
+            searchable: false
         }
-        return ''; // opsional, jika tidak ada respon
-    }
+    ]);
 
-    function renderDokumenLink(a) {
-        if (a.final_dokumen && a.final_dokumen.filePath) {
-            return `<a href="${a.final_dokumen.filePath}" target="_blank" class="badge text-primary" title="Lihat Dokumen">Dokumen</a>`;
-        }
-        return '';
-    }
+    let table = $('#table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('ajuanDafduk.filter') }}",
+            data: function(d) {
+                d.data = $('select[name="data"]').val();
+                d.startDate = $('input[name="startDate"]').val();
+                d.endDate = $('input[name="endDate"]').val();
+                d.layanan = $('select[name="layanan"]').val();
+                d.status = $('select[name="status"]').val();
+                d.role = $('input[name="role"]').val();
+                d.rw = $('input[name="rw"]').val();
+                d.rt = $('input[name="rt"]').val();
+                d.kecamatan = $('select[name="kecamatan"]').val();
+                d.desa = $('select[name="desa"]').val();
 
-    function renderActions(a) {
-        const status = a.statAjuan;
-        let html = '';
-
-        html += `<div class="action">`;
-        if (a.deleted_at) {
-            if (roleUser === 'operatorDesa') {
-                html +=
-                    `<button><a href="/ajuanDafduk/restore/${a.idDafduk}" class ="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a></button>`;
             }
-        } else {
-            html +=
-                `<button><a href="/ajuanDafduk/${a.idDafduk}" class="text-success" title="Detail"><i class="lni lni-eye"></i></a></button>`
-            if (a.final_dokumen && a.final_dokumen.filePath) {
-                html +=
-                    `<button><a href="${a.final_dokumen.filePath}" target="_blank" class="text-primary" title="Lihat Final Dokumen"><i class="lni lni-archive"></i></a></button>`;
-            }
-
-            if (a.linkBerkas && typeof a.linkBerkas === 'string' && a.linkBerkas.trim() !== '') {
-                html +=
-                    `<button><a href="${a.linkBerkas}" target="_blank" class="text-muted" title="Lihat Berkas di GDrive"><i class="lni lni-telegram-original"></i></a></button>`;
-            }
-            if (roleUser === 'operatorDesa') {
-                if (status === 'dalam antrian') {
-                    html +=
-                        `<a href="/ajuanDafduk/${a.idDafduk}/edit" class="text-warning" title="Edit Ajuan"><i class="lni lni-pencil"></i></a>`;
-                    html += `<form action="/ajuanDafduk/${a.idDafduk}" method="POST" style="display:inline;">
-                            <input type="hidden" name="_token" value="${csrfToken}">
-                            <input type="hidden" name="_method" value="DELETE">
-                            <button onclick="return confirm('Yakin hapus?')" class="text-danger" title="Hapus Ajuan">
-                                <i class="lni lni-trash-can"></i>
-                            </button>
-                         </form>`;
-
-                }
-                if (status === 'ditolak') {
-                    html +=
-                        `<button><a href="/respon/dafduk/${a.idDafduk}/edit" class="text-success" title="Ajukan Ulang"><i class="lni lni-reload"></i></a><button>`;
-                }
-                if (['sudah diproses', 'selesai'].includes(status)) {
-                    if (a.final_dokumen && a.final_dokumen.filePath) {
-                        html +=
-                            `<button><a href="/finalDok/dafduk/${a.idDafduk}/edit" class="text-warning" title="Ubah Dokumen"><i class="lni lni-pencil-alt"></i></a></button>`;
-                    } else {
-                        html +=
-                            `<button><a href="/finalDok/dafduk/${a.idDafduk}/create" class="text-primary" title="Upload Dokumen"><i class="lni lni-cloud-upload"></i></a><button>`;
-                    }
-                }
-                html +=
-                    `<a href="/cetak-token/dafduk/${a.idDafduk}" class="text-secondary" title="Bukti Pengajuan" target="_blank"><i class="lni lni-bookmark"></i></a>`;
-            } else if (['opDinDafduk', 'operatorKecamatan'].includes(roleUser)) {
-                if (status === 'dalam antrian') {
-                    html +=
-                        `<a href="/respon/dafduk/${a.idDafduk}/create" class="text-primary" title="Beri Respon"><i class="lni lni-reply"></i></a>`;
-                } else {
-                    html +=
-                        `<a href="/respon/dafduk/${a.idDafduk}/edit" class="text-warning" title="Ubah Respon"><i class="lni lni-pencil-alt"></i></a>`;
-                }
-            }
-        }
-        html += `</div>`;
-
-        return html;
-    }
+        },
+        columns: columns
+    });
 
     $('#filterForm').on('submit', function(e) {
         e.preventDefault();
-        const formData = $(this).serialize();
-        $.ajax({
-            url: "{{ route('ajuanDafduk.filter') }}",
-            type: 'GET',
-            data: formData,
-            success: function(res) {
-                let html = '';
-                res.data.forEach((a, i) => {
-                    const kec = a.operator_desa?.desa?.kecamatan?.namaKec || '-';
-                    const desa = a.operator_desa?.desa?.namaDesa || '-';
-                    const rt = a.rt || '-';
-                    const rw = a.rw || '-';
-                    const layanan = a.layanan?.namaLayanan || '-';
-                    const status = a.statAjuan || '-';
-
-                    html += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${new Date(a.created_at).toLocaleDateString('id-ID')}</td>
-                        <td>${layanan}</td>
-                        <td>${a.nama}</td>
-                        <td>${a.nik}</td>
-                        <td>${a.noKK}</td>
-                        @if (auth()->user()->roleUser !== 'operatorDesa')
-                        <td>${kec}</td>
-                        <td>${desa}</td>
-                        @endif
-                        <td>${rt}/ ${rw}</td>
-                        <td><span class="badge ${getBadgeClass(status)}">${status}</span></td>
-                        <td>${renderNote(a)}</td>
-                        <td>${renderActions(a)}</td>
-                    </tr>`;
-                });
-                $('#tableBody').html(html);
-            },
-            error: function(err) {
-                alert('Gagal memfilter data!');
-                console.error(err);
-            }
-        });
+        table.ajax.reload();
     });
-
+</script>
+<script>
     $('#filterKecamatan').on('change', function() {
         const kecamatanId = $(this).val();
         if (!kecamatanId) {
@@ -456,30 +312,6 @@
             }
         });
     });
-    $(document).ready(function() {
-        const selectedKecamatan = $('#filterKecamatan').val();
-        const selectedDesa = $('#selectedDesa').val(); // kalau pakai hidden input, bisa pakai ini
-        if (selectedKecamatan) {
-            // Panggil AJAX langsung, jangan hanya trigger change
-            $.ajax({
-                url: '/get-desa-by-kecamatan/' + selectedKecamatan,
-                type: 'GET',
-                success: function(res) {
-                    let desaOptions = '<option disabled selected>-- Pilih Desa --</option><option value="">Semua</option>';
-                    res.forEach(d => {
-                        desaOptions += `<option value="${d.idDesa}" ${selectedDesa == d.idDesa ? 'selected' : ''}>${d.namaDesa}</option>`;
-                    });
-                    $('#filterDesa').html(desaOptions);
-                }
-            });
-        }
-    });
 </script>
+
 @endsection
-@push('scripts')
-<script>
-    const dataTable = new simpleDatatables.DataTable("#table", {
-        searchable: true,
-    });
-</script>
-@endpush

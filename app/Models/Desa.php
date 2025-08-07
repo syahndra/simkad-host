@@ -16,7 +16,7 @@ class Desa extends Model
 
     public function kecamatan()
     {
-        return $this->belongsTo(Kecamatan::class, 'idKec')->withTrashed();
+        return $this->belongsTo(Kecamatan::class, 'idKec');
     }
     public function operatorDesa()
     {

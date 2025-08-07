@@ -73,10 +73,11 @@ class KecamatanController extends Controller
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('aksi', function ($item) {
+                $html = '<div class="action" style="display: flex; gap: 6px; overflow-x: auto;">';
                 if ($item->deleted_at) {
-                    return '<a href="/kecamatan/restore/' . $item->idKec . '" class="text-success"><i class="lni lni-reload"></i></a>';
+                    $html .= '<a href="/kecamatan/restore/' . $item->idKec . '" class="text-success"><i class="lni lni-reload"></i></a>';
                 } else {
-                    return '
+                    $html .= '
                     <a href="/kecamatan/' . $item->idKec . '/edit" class="text-warning"><i class="lni lni-pencil"></i></a>
                     <form action="/kecamatan/' . $item->idKec . '" method="POST" style="display:inline;">
                         ' . csrf_field() . method_field('DELETE') . '
@@ -86,6 +87,8 @@ class KecamatanController extends Controller
                         </button>
                     </form>';
                 }
+                $html .= '</div>';
+                return $html;
             })
             ->rawColumns(['aksi'])
             ->make(true);

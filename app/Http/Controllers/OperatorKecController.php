@@ -131,7 +131,7 @@ class OperatorKecController extends Controller
             })
             ->addColumn('kecamatan', fn($op) => $op->kecamatan->namaKec ?? '-')
             ->addColumn('aksi', function ($op) {
-                $html = '<div class="action">';
+                $html = '<div class="action" style="display: flex; gap: 6px; overflow-x: auto;">';
                 if ($op->deleted_at) {
                     $html .= '<a href="/operatorKec/restore/' . $op->idOpkec . '" class="text-success" title="Pulihkan"><i class="lni lni-reload"></i></a>';
                 } else {

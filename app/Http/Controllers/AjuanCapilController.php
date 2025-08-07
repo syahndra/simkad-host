@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PengajuanMasukMail;
 use App\Models\Kecamatan;
 use App\Models\Desa;
+use Yajra\DataTables\DataTables;
 
 class AjuanCapilController extends Controller
 {
@@ -170,13 +171,13 @@ class AjuanCapilController extends Controller
             $query->where('statAjuan', $request->status);
         }
 
-        if ($request->kecamatan) {
+        if ($request->kecamatan != '') {
             $query->whereHas('operatorDesa.desa', function ($q) use ($request) {
                 $q->where('idKec', $request->kecamatan);
             });
         }
         if ($user->roleUser != 'operatorDesa') {
-            if ($request->desa) {
+            if ($request->desa != '') {
                 $query->whereHas('operatorDesa', function ($q) use ($request) {
                     $q->where('idDesa', $request->desa);
                 });
@@ -192,11 +193,125 @@ class AjuanCapilController extends Controller
         if ($request->data === 'terhapus') {
             $query->onlyTrashed();
         }
-        $result = $query->orderBy('created_at', 'desc')->get();
 
-        return response()->json([
-            'data' => $result
-        ]);
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('tanggal', function ($ajuan) {
+                return $ajuan->created_at
+                    ? \Carbon\Carbon::parse($ajuan->created_at)->format('j/n/Y')
+                    : '-';
+            })
+            ->addColumn('layanan', fn($ajuan) => $ajuan->layanan->namaLayanan ?? '-')
+            ->addColumn('nama', fn($ajuan) => $ajuan->nama ?? '-')
+            ->addColumn('nik', fn($ajuan) => $ajuan->nik ?? '-')
+            ->addColumn('noKK', fn($ajuan) => $ajuan->noKK ?? '-')
+            ->addColumn('noAkta', fn($ajuan) => $ajuan->noAkta ?? '-')
+            ->addColumn('kecamatan', fn($ajuan) => $ajuan->operatorDesa->desa->kecamatan->namaKec ?? '-')
+            ->addColumn('desa', fn($ajuan) => $ajuan->operatorDesa->desa->namaDesa ?? '-')
+            ->addColumn('rt_rw', function ($ajuan) {
+                return ($ajuan->rt ?? '-') . '/' . ($ajuan->rw ?? '-');
+            })
+            ->addColumn('statAjuan', function ($ajuan) {
+                $class = 'bg-secondary'; // default
+                if ($ajuan->statAjuan === 'ditolak') {
+                    $class = 'bg-danger';
+                } elseif ($ajuan->statAjuan === 'sudah diproses') {
+                    $class = 'bg-primary';
+                } elseif ($ajuan->statAjuan === 'revisi') {
+                    $class = 'bg-warning';
+                } elseif ($ajuan->statAjuan === 'selesai') {
+                    $class = 'bg-success';
+                }
+                $html = '<span class="badge ' . $class . '">' . $ajuan->statAjuan . '</span>';
+
+                return $html;
+            })
+            ->addColumn('respon', function ($ajuan) {
+                return $ajuan->respon->respon ?? '-';
+            })
+            ->addColumn('action', function ($ajuan) {
+                $user = Auth::user()->roleUser;
+                $html = '<div class="action" style="display: flex; gap: 6px; overflow-x: auto;">';
+                // Tombol Pulihkan
+                if ($ajuan->deleted_at) {
+                    $html .= '<a href="' . route('ajuanCapil.restore', $ajuan->idCapil) . '" class="text-warning" title="Pulihkan">
+                    <i class="lni lni-reload"></i>
+                  </a>';
+                } else {
+                    // Tombol Detail
+                    $html .= '<a href="' . route('ajuanCapil.show', $ajuan->idCapil) . '" class="text-success" title="Detail">
+                <i class="lni lni-eye"></i>
+              </a>';
+                    // Tombol Lihat Final Dokumen
+                    if (isset($ajuan->finalDokumen?->filePath)) {
+                        $html .= '<a href="' . asset($ajuan->finalDokumen->filePath) . '" target="_blank" class="text-primary" title="Lihat Final Dokumen">
+                    <i class="lni lni-archive"></i>
+                  </a>';
+                    }
+
+                    // Tombol Lihat Berkas GDrive
+                    if (!empty($ajuan->linkBerkas)) {
+                        $html .= '<a href="' . $ajuan->linkBerkas . '" target="_blank" class="text-muted" title="Lihat Berkas di GDrive">
+                    <i class="lni lni-telegram-original"></i>
+                  </a>';
+                    }
+
+                    // Role: operatorDesa
+                    if ($user === 'operatorDesa') {
+                        if ($ajuan->statAjuan === 'dalam antrian') {
+                            $html .= '<a href="' . route('ajuanCapil.edit', $ajuan->idCapil) . '" class="text-warning" title="Edit Ajuan">
+                        <i class="lni lni-pencil"></i>
+                      </a>';
+                            $html .= '<form action="' . route('ajuanCapil.destroy', $ajuan->idCapil) . '" method="POST" style="display:inline;">
+                        ' . csrf_field() . method_field('DELETE') . '
+                        <button onclick="return confirm(\'Yakin hapus?\')" class="text-danger" title="Hapus Ajuan">
+                            <i class="lni lni-trash-can"></i>
+                        </button>
+                      </form>';
+                        }
+
+                        if ($ajuan->statAjuan === 'ditolak') {
+                            $html .= '<a href="' . route('respon.edit', ['jenis' => 'capil', 'id' => $ajuan->idCapil]) . '" class="text-warning" title="Ajukan Ulang">
+                        <i class="lni lni-reload"></i>
+                      </a>';
+                        }
+
+                        if (in_array($ajuan->statAjuan, ['sudah diproses', 'selesai'])) {
+                            if (isset($ajuan->finalDokumen)) {
+                                $html .= '<a href="' . route('finalDokumen.edit', ['jenis' => 'capil', 'id' => $ajuan->idCapil]) . '" class="text-warning" title="Ubah Dokumen">
+                            <i class="lni lni-pencil-alt"></i>
+                          </a>';
+                            } else {
+                                $html .= '<a href="' . route('finalDokumen.create', ['jenis' => 'capil', 'id' => $ajuan->idCapil]) . '" class="text-primary" title="Upload Dokumen">
+                            <i class="lni lni-cloud-upload"></i>
+                          </a>';
+                            }
+                        }
+
+                        $html .= '<a href="' . route('ajuan.cetak', ['jenis' => 'capil', 'id' => $ajuan->idCapil]) . '" class="text-secondary" title="Bukti Pengajuan" target="_blank">
+                    <i class="lni lni-cog"></i>
+                  </a>';
+                    }
+
+                    // Role: opDinCapil
+                    elseif ($user === 'opDinCapil') {
+                        if ($ajuan->statAjuan === 'dalam antrian') {
+                            $html .= '<a href="' . route('respon.create', ['jenis' => 'capil', 'id' => $ajuan->idCapil]) . '" class="text-primary" title="Beri Respon">
+                        <i class="lni lni-reply"></i>
+                      </a>';
+                        } else {
+                            $html .= '<a href="' . route('respon.edit', ['jenis' => 'capil', 'id' => $ajuan->idCapil]) . '" class="text-warning" title="Ubah Respon">
+                        <i class="lni lni-pencil-alt"></i>
+                      </a>';
+                        }
+                    }
+                }
+
+                $html .= '</div>';
+                return $html;
+            })
+            ->rawColumns(['statAjuan', 'action'])
+            ->make(true);
     }
 
     public function show($id)

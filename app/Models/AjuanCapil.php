@@ -16,7 +16,7 @@ class AjuanCapil extends Model
     protected $fillable = [
         'idOpdes',
         'idLayanan',
-        'tanggalAjuan',
+        'created_at',
         'noAkta',
         'noKK',
         'nik',
