@@ -111,11 +111,13 @@
                                 </select>
                             </div>
                             @else
-                            <select name="kecamatan" hidden>
-                                <option value="" disabled selected >-- Pilih Kecamatan --</option>
+                            <input type="hidden" name="kecamatanInput" value="{{ $namaKecamatan }}">
+                            <input type="hidden" name="desaInput" value="{{ $namaDesa }}">
+                            <select name="kecamatan" hidden id="filterKecamatan">
+                                <option value="{{ $idKec }}" selected>{{ $namaKecamatan }}</option>
                             </select>
-                            <select name="desa" hidden>
-                                <option value="" selected>-- Pilih Desa --</option>
+                            <select name="desa" hidden id="filterDesa">
+                                <option value="{{ $idDesa }}" selected>{{ $namaDesa }}</option>
                             </select>
                             <input type="hidden" name="role" value="operatorDesa">
                             <div class="col-md-2">

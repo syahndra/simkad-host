@@ -273,8 +273,8 @@
 
 
 
-            const rtText = form.elements["rt"]?.value || "Semua";
-            const rwText = form.elements["rw"]?.value || "Semua";
+            const rtText = form.elements["rt"]?.value || "-";
+            const rwText = form.elements["rw"]?.value || "-";
 
             // Waktu cetak
             const now = new Date();

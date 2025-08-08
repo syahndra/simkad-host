@@ -25,15 +25,18 @@ class AjuanDafdukController extends Controller
         $user = Auth::user();
         $listLayanan = Layanan::where('jenis', 'dafduk')->get();
         $listKecamatan = null;
-        $idKec = null;
         $namaKecamatan = null;
+        $idKec = null;
         $namaDesa = null;
+        $idDesa = null;
 
         if ($user->roleUser === 'operatorDesa') {
             $opdes = OperatorDesa::where('idUser', $user->idUser)->first();
             $listKecamatan = Kecamatan::where('idKec', $opdes->desa->kecamatan->idKec)->get();
             $namaKecamatan = $listKecamatan->first()?->namaKec;
+            $idKec = $listKecamatan->first()?->idKec;
             $namaDesa = $opdes->desa->namaDesa ?? null;
+            $idDesa = $opdes->desa->idDesa ?? null;
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')
                 ->whereHas('operatorDesa', function ($query) use ($opdes) {
                     $query->where('idDesa', $opdes->idDesa);
@@ -44,6 +47,7 @@ class AjuanDafdukController extends Controller
             $listLayanan = Layanan::where('aksesVer', 'kecamatan')->get();
             $opkec = OperatorKec::where('idUser', $user->idUser)->first();
             $kecamatan = Kecamatan::where('idKec', $opkec->idKec)->first();
+            $namaKecamatan = $kecamatan->namaKec;
             $idKec = $kecamatan->idKec;
             $ajuan = AjuanDafduk::with('operatorDesa.desa.kecamatan', 'layanan')
                 ->whereHas('operatorDesa.desa', function ($query) use ($opkec) {
@@ -71,7 +75,7 @@ class AjuanDafdukController extends Controller
 
         // dd($namaKecamatan);
 
-        return view('ajuanDafduk.index', compact('idKec','ajuan', 'listLayanan', 'listKecamatan', 'namaKecamatan', 'namaDesa'));
+        return view('ajuanDafduk.index', compact('idKec','ajuan', 'listLayanan', 'listKecamatan', 'namaKecamatan', 'namaDesa', 'idDesa'));
     }
 
     public function create()

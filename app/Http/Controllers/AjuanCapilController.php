@@ -24,12 +24,17 @@ class AjuanCapilController extends Controller
         $listLayanan = Layanan::where('jenis', 'capil')->get();
         $listKecamatan = null;
         $namaKecamatan = null;
+        $idKec = null;
         $namaDesa = null;
+        $idDesa = null;
+
         if (Auth::user()->roleUser === 'operatorDesa') {
             $opdes = OperatorDesa::where('idUser', Auth::user()->idUser)->first();
             $listKecamatan = Kecamatan::where('idKec', $opdes->desa->kecamatan->idKec)->get();
             $namaKecamatan = $listKecamatan->first()?->namaKec;
+            $idKec = $listKecamatan->first()?->idKec;
             $namaDesa = $opdes->desa->namaDesa ?? null;
+            $idDesa = $opdes->desa->idDesa ?? null;
             $ajuan = AjuanCapil::with('layanan', 'operatorDesa.desa.kecamatan', 'respon')
                 ->whereHas('operatorDesa', function ($query) use ($opdes) {
                     $query->where('idDesa', $opdes->idDesa);
@@ -41,7 +46,7 @@ class AjuanCapilController extends Controller
             $ajuan = AjuanCapil::with('layanan', 'operatorDesa.desa.kecamatan', 'respon')->orderBy('created_at', 'desc')->get();
         }
 
-        return view('ajuanCapil.index', compact('ajuan', 'listLayanan', 'listKecamatan', 'namaKecamatan', 'namaDesa'));
+        return view('ajuanCapil.index', compact('ajuan', 'listLayanan', 'listKecamatan', 'namaKecamatan', 'namaDesa','idKec','idDesa'));
     }
 
     public function create()

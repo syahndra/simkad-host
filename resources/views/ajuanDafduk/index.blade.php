@@ -1,5 +1,4 @@
 @extends('layouts.app', ['title' => 'Ajuan Dafduk', 'menu' => 'ajuanDafduk'])
-
 @section('content')
 <section class="table-components">
     <div class="container-fluid">
@@ -101,7 +100,7 @@
                             </div>
                             @if (auth()->user()->roleUser == 'operatorKecamatan')
                             <select name="kecamatan" id="filterKecamatan" style="display: none;">
-                                <option value="{{ $idKec }}" selected>-- Pilih Kecamatan --</option>
+                                <option value="{{ $idKec }}" selected>{{ $namaKecamatan }}</option>
                             </select>
                             <div class="col-md-3">
                                 <select class="form-control" name="desa" id="filterDesa">
@@ -111,11 +110,13 @@
                                 </select>
                             </div>
                             @elseif (auth()->user()->roleUser == 'operatorDesa')
-                            <select name="kecamatan" hidden>
-                                <option value="" disabled selected>-- Pilih Kecamatan --</option>
+                            <input type="hidden" name="kecamatanInput" value="{{ $namaKecamatan }}">
+                            <input type="hidden" name="desaInput" value="{{ $namaDesa }}">
+                            <select name="kecamatan" hidden id="filterKecamatan">
+                                <option value="{{ $idKec }}" selected>{{ $namaKecamatan }}</option>
                             </select>
-                            <select name="desa" hidden>
-                                <option value="" selected>-- Pilih Desa --</option>
+                            <select name="desa" hidden id="filterDesa">
+                                <option value="{{ $idDesa }}" selected>{{ $namaDesa }}</option>
                             </select>
                             <input type="hidden" name="role" value="operatorDesa">
                             <div class="col-md-2">
@@ -135,11 +136,7 @@
                                     <option value="" disabled selected>-- Pilih Kecamatan --</option>
                                     <option value="">Semua</option>
                                     @foreach ($listKecamatan as $kec)
-                                    @if (auth()->user()->roleUser == 'operatorKecamatan')
-                                    <option value="{{ $kec->idKec }}" selected>{{ $kec->namaKec }}</option>
-                                    @else
                                     <option value="{{ $kec->idKec }}">{{ $kec->namaKec }}</option>
-                                    @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -313,7 +310,7 @@
         $.ajax({
             url: '/get-desa-by-kecamatan/' + kecamatanId,
             type: 'GET',
-            success: function (res) {
+            success: function(res) {
                 let desaOptions = '<option disabled selected>-- Pilih Desa --</option><option value="">Semua</option>';
                 res.forEach(d => {
                     desaOptions += `<option value="${d.idDesa}">${d.namaDesa}</option>`;
@@ -324,13 +321,13 @@
     }
 
     // Event saat user mengganti kecamatan (jika dropdownnya bisa terlihat)
-    $('#filterKecamatan').on('change', function () {
+    $('#filterKecamatan').on('change', function() {
         const kecamatanId = $(this).val();
         loadDesaByKecamatan(kecamatanId);
     });
 
     // Trigger otomatis saat halaman dimuat (jika kecamatan sudah ada)
-    $(document).ready(function () {
+    $(document).ready(function() {
         const kecamatanId = $('#filterKecamatan').val();
         if (kecamatanId) {
             loadDesaByKecamatan(kecamatanId);
