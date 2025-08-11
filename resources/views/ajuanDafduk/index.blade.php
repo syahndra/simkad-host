@@ -148,6 +148,7 @@
                                 </select>
                             </div>
                             @endif
+                            <input type="hidden" name="oleh" value="{{ auth()->user()->nama }}">
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary w-100">Filter</button>
                             </div>

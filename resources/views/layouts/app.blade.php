@@ -284,6 +284,7 @@
                 year: "numeric"
             });
             const jamCetak = now.toLocaleTimeString("id-ID");
+            const oleh = form.elements["oleh"]?.value || "-";
 
             // Judul
             let judul = "DATA PENGAJUAN";
@@ -303,25 +304,38 @@
             doc.setFont(undefined, 'bold');
             doc.text(judul, 40, 100);
 
-            doc.setFontSize(10);
+            doc.setFontSize(8);
             doc.setFont(undefined, 'normal');
-            doc.text(`Tanggal Cetak : ${tanggalCetak}, ${jamCetak}`, 600, 100);
+            doc.text(`Tanggal Cetak : ${tanggalCetak} ${jamCetak}, Oleh : ${oleh}`, 530, 100);
 
-            // Informasi filter (2 kolom)
-            const leftX = 40;
-            const rightX = 350;
+            // Setting posisi kolom
+            const leftLabelX = 40;
+            const leftColonX = 90; // posisi titik dua kiri
+            const leftValueX = 100; // posisi nilai kiri
+
+            const rightLabelX = 350;
+            const rightColonX = 410; // posisi titik dua kanan
+            const rightValueX = 420; // posisi nilai kanan
+
             const baseY = 120;
             const lineSpacing = 15;
 
+            // Fungsi menggambar label : value
+            function drawLabelValue(label, value, labelX, colonX, valueX, y) {
+                doc.text(label, labelX, y);
+                doc.text(":", colonX, y);
+                doc.text(value, valueX, y);
+            }
+
             // Kolom kiri
-            doc.text(`Tanggal     : ${tanggalLabel}`, leftX, baseY);
-            doc.text(`Layanan     : ${layananText}`, leftX, baseY + lineSpacing);
-            doc.text(`Status      : ${statusText}`, leftX, baseY + 2 * lineSpacing);
+            drawLabelValue("Tanggal", tanggalLabel, leftLabelX, leftColonX, leftValueX, baseY);
+            drawLabelValue("Layanan", layananText, leftLabelX, leftColonX, leftValueX, baseY + lineSpacing);
+            drawLabelValue("Status", statusText, leftLabelX, leftColonX, leftValueX, baseY + 2 * lineSpacing);
 
             // Kolom kanan
-            doc.text(`Kecamatan   : ${kecamatanText}`, rightX, baseY);
-            doc.text(`Desa        : ${desaText}`, rightX, baseY + lineSpacing);
-            doc.text(`RT / RW     : ${rtText} / ${rwText}`, rightX, baseY + 2 * lineSpacing);
+            drawLabelValue("Kecamatan", kecamatanText, rightLabelX, rightColonX, rightValueX, baseY);
+            drawLabelValue("Desa", desaText, rightLabelX, rightColonX, rightValueX, baseY + lineSpacing);
+            drawLabelValue("RT / RW", `${rtText} / ${rwText}`, rightLabelX, rightColonX, rightValueX, baseY + 2 * lineSpacing);
 
             // Ambil data tabel
             const headers = Array.from(table.querySelectorAll("thead th"))
@@ -348,10 +362,10 @@
                 }
             });
 
-            const finalY = doc.previousAutoTable.finalY + 30;
-            doc.text("Mengetahui,", 600, finalY);
-            doc.text("Kepala Dinas", 600, finalY + 15);
-            doc.text("__________________", 600, finalY + 60);
+            // const finalY = doc.previousAutoTable.finalY + 30;
+            // doc.text("Mengetahui,", 600, finalY);
+            // doc.text("Kepala Dinas", 600, finalY + 15);
+            // doc.text("__________________", 600, finalY + 60);
 
             doc.setFontSize(8);
             doc.text("Dokumen ini dicetak secara otomatis dari Sistem Monitoring Kios Adminduk Desa dan sah tanpa tanda tangan basah.", 40, 570);

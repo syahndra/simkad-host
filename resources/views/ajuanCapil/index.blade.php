@@ -129,6 +129,7 @@
                                     maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                             </div>
                             @endif
+                            <input type="hidden" name="oleh" value="{{ auth()->user()->nama }}">
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary w-100">Filter</button>
                             </div>

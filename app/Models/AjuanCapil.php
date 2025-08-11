@@ -32,12 +32,12 @@ class AjuanCapil extends Model
 
     public function layanan()
     {
-        return $this->belongsTo(Layanan::class, 'idLayanan');
+        return $this->belongsTo(Layanan::class, 'idLayanan')->withTrashed();
     }
 
     public function operatorDesa()
     {
-        return $this->belongsTo(OperatorDesa::class, 'idOpdes');
+        return $this->belongsTo(OperatorDesa::class, 'idOpdes')->withTrashed();
     }
 
     public function respon()

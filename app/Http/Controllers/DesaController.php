@@ -35,7 +35,7 @@ class DesaController extends Controller
     public function edit($id)
     {
         $desa = Desa::findOrFail($id);
-        $kecamatan = Kecamatan::all();
+        $kecamatan = Kecamatan::withTrashed()->get();
         return view('desa.edit', compact('desa', 'kecamatan'));
     }
 

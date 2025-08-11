@@ -23,7 +23,7 @@ class Respon extends Model
     // Relasi ke user (yang memberi respon)
     public function user()
     {
-        return $this->belongsTo(User::class, 'idUser', 'idUser');
+        return $this->belongsTo(User::class, 'idUser', 'idUser')->withTrashed();
     }
 
     // Optional: method dinamis untuk ambil ajuan berdasarkan jenis
