@@ -435,7 +435,7 @@
     $('#filterKecamatan').on('change', function() {
         const kecamatanId = $(this).val();
         if (!kecamatanId) {
-            $('#filterDesa').html('<option disabled selected>-- Pilih Desa --</option><option value="">Semua</option>');
+            $('#filterDesa').html('<option value="" disabled selected>-- Pilih Desa --</option><option value="">Semua</option>');
             return;
         }
 
@@ -443,7 +443,7 @@
             url: '/get-desa-by-kecamatan/' + kecamatanId,
             type: 'GET',
             success: function(res) {
-                let desaOptions = '<option disabled selected>-- Pilih Desa --</option><option value="">Semua</option>';
+                let desaOptions = '<option value="" disabled selected>-- Pilih Desa --</option><option value="">Semua</option>';
                 res.forEach(d => {
                     desaOptions += `<option value="${d.idDesa}">${d.namaDesa}</option>`;
                 });
