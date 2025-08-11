@@ -313,24 +313,24 @@ class AjuanDafdukController extends Controller
                         }
 
                         if ($ajuan->statAjuan === 'ditolak') {
-                            $html .= '<a href="' . route('respon.edit', ['jenis' => 'Dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-warning" title="Ajukan Ulang">
+                            $html .= '<a href="' . route('respon.edit', ['jenis' => 'dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-warning" title="Ajukan Ulang">
                         <i class="lni lni-reload"></i>
                       </a>';
                         }
 
                         if (in_array($ajuan->statAjuan, ['sudah diproses', 'selesai'])) {
                             if (isset($ajuan->finalDokumen)) {
-                                $html .= '<a href="' . route('finalDokumen.edit', ['jenis' => 'Dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-warning" title="Ubah Dokumen">
+                                $html .= '<a href="' . route('finalDokumen.edit', ['jenis' => 'dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-warning" title="Ubah Dokumen">
                             <i class="lni lni-pencil-alt"></i>
                           </a>';
                             } else {
-                                $html .= '<a href="' . route('finalDokumen.create', ['jenis' => 'Dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-primary" title="Upload Dokumen">
+                                $html .= '<a href="' . route('finalDokumen.create', ['jenis' => 'dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-primary" title="Upload Dokumen">
                             <i class="lni lni-cloud-upload"></i>
                           </a>';
                             }
                         }
 
-                        $html .= '<a href="' . route('ajuan.cetak', ['jenis' => 'Dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-secondary" title="Bukti Pengajuan" target="_blank">
+                        $html .= '<a href="' . route('ajuan.cetak', ['jenis' => 'dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-secondary" title="Bukti Pengajuan" target="_blank">
                     <i class="lni lni-cog"></i>
                   </a>';
                     }
@@ -338,11 +338,11 @@ class AjuanDafdukController extends Controller
                     // Role: opDinDafduk
                     elseif ($user === 'opDinDafduk') {
                         if ($ajuan->statAjuan === 'dalam antrian') {
-                            $html .= '<a href="' . route('respon.create', ['jenis' => 'Dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-primary" title="Beri Respon">
+                            $html .= '<a href="' . route('respon.create', ['jenis' => 'dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-primary" title="Beri Respon">
                         <i class="lni lni-reply"></i>
                       </a>';
                         } else {
-                            $html .= '<a href="' . route('respon.edit', ['jenis' => 'Dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-warning" title="Ubah Respon">
+                            $html .= '<a href="' . route('respon.edit', ['jenis' => 'dafduk', 'id' => $ajuan->idDafduk]) . '" class="text-warning" title="Ubah Respon">
                         <i class="lni lni-pencil-alt"></i>
                       </a>';
                         }
